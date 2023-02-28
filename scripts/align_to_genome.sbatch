@@ -45,8 +45,8 @@ echo I have added matescore tags and saved as ${SCRATCHNODE}/${SAMPLE_NAME}.fixm
 samtools sort -o ${SCRATCHNODE}/${SAMPLE_NAME}.positionsort.bam ${SCRATCHNODE}/${SAMPLE_NAME}.fixmate.bam #sorting
 echo I have sorted and saved as ${SCRATCHNODE}/${SAMPLE_NAME}.positionsort.bam
 
-samtools markdup -r ${SCRATCHNODE}/${SAMPLE_NAME}.positionsort.bam ${RESEARCHDIR}/${SAMPLE_NAME}.rmdup.bam 
-echo I have removed duplicates and saved as ${RESEARCHDIR}/${SAMPLE_NAME}.rmdup.bam 
+samtools markdup -r ${SCRATCHNODE}/${SAMPLE_NAME}.positionsort.bam ${OUTDIR}/${SAMPLE_NAME}.rmdup.bam 
+echo I have removed duplicates and saved as ${OUTDIR}/${SAMPLE_NAME}.rmdup.bam 
 
 echo I am all done with using bwa and samtools to align $FORWARDREAD and $REVERSEREAD to $REFERENCE
 
