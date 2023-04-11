@@ -20,10 +20,10 @@ outdir=$homedir/$run_name/called_snps
 
 
 cpus=1 #number of CPUs to request/use per dataset 
-ram_per_cpu=4G #amount of RAM to request/use per CPU
+ram_per_cpu=2G #amount of RAM to request/use per CPU
 
 reference=$homedir/$run_name/reference/Scatenatus_HiC_v1.1.fasta  #filepath of reference file
-list_of_bamfiles=$storagenode/$run_name/bam_list_path.txt #list with paths to bam files we want to call SNPs for
+list_of_bamfiles=$homedir/$run_name/bam_list_path.txt #list with paths to bam files we want to call SNPs for
 vcf_name=EMR_WGS_${date}
 
 #---------------------------------------------------------
@@ -53,7 +53,7 @@ else
 	--mem-per-cpu=$ram_per_cpu \
 	--output=./$logfilesdir/${jobname}_${vcf_name}_%A.out \
 	--error=./$logfilesdir/${jobname}_${vcf_name}_%A.err \
-	--time=168:00:00 \
+	--time=72:00:00 \
 	$executable
 			
 echo I submitted to call SNPs woohoo!

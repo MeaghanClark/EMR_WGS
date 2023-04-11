@@ -16,6 +16,8 @@ echo we are starting calling snps!
 #load programs we want to use
 module purge
 module load powertools
+module load GCC/10.2.0
+module load GSL/2.6
 module list 
  
 # text for troubleshooting
@@ -46,15 +48,17 @@ bcftools --version
  -O u \
  | bcftools +fill-tags \
  -O b \
- -o ${OUTDIR}/${VCF_NAME}.bcf \
- --tags 'AF,ExcHet,NS'
+ -o ${OUTDIR}/${VCF_NAME}.bcf.gz \
+-- -t 'AF,ExcHet,NS'
  
 echo I have called SNPs using $LIST_OF_BAMFILES and $REFERENCE
 echo I have also output a bcf file and saved it here: ${OUTDIR}/${VCF_NAME}.bcf
 
-bcftools view ${OUTDIR}/${VCF_NAME}.bcf > ${OUTDIR}/${VCF_NAME}.vcf
+#bcftools view ${OUTDIR}/${VCF_NAME}.bcf > ${OUTDIR}/${VCF_NAME}.vcf
 
-echo Finally, I have converted the bcf file to a vcf file and saved it here: ${OUTDIR}/${VCF_NAME}_gvcf.vcf
+wait
+
+tabix -p bcf $OUTBCF
 
 #print some environment variables to stdout for records
 echo ----------------------------------------------------------------------------------------
