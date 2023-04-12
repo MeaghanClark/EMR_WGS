@@ -15,7 +15,7 @@ outbcf='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/raw_calls/EM
 
 # define log file directory
 date=$(date +%m%d%Y)
-logfilesdir=$HOME/EMR_WGS/log_norm_{$date}
+logfilesdir=$HOME/EMR_WGS/log_norm_${date}
 
 # define running vars
 cpus=4
@@ -23,14 +23,17 @@ ram_per_cpu=12
 
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
-if [ ! -d ./$logfilesdir ]; then mkdir ./$logfilesdir; fi
+if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 
 sbatch --job-name=$jobname \
-		--export=REFERENCE=$reference,CPUS=$cpus,RUN_NAME=$run_name,INBCF=$inbcf,OUTBCF=$outbcf,LOGFILESDIR=$logfilesdir,DATE=$date \
-		--cpus-per-task=$cpus \
-		--mem-per-cpu=$ram_per_cpu \
-		--output=./$logfilesdir/${jobname}_%A.out \
-		--error=./$logfilesdir/${jobname}_%A.err \
-		--time=24:00:00 \
-		$executable
+--export=REFERENCE=$reference,CPUS=$cpus,RUN_NAME=$run_name,INBCF=$inbcf,OUTBCF=$outbcf,LOGFILESDIR=$logfilesdir,DATE=$date \
+--cpus-per-task=$cpus \
+--mem-per-cpu=$ram_per_cpu \
+--output=$logfilesdir/${jobname}_%A.out \
+--error=$logfilesdir/${jobname}_%A.err \
+--time=24:00:00 \
+$executable
+
+echo I submitted to normalize my bcf file!
+echo ----------------------------------------------------------------------------------------
 
