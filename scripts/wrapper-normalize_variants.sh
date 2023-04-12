@@ -7,6 +7,7 @@
 
 # define high level vars
 jobname=bcf_norm
+executable=/$HOME/EMR_WGS/scripts/normalize_variants.sbatch
 
 # define input and output files
 reference='/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta'
