@@ -6,8 +6,8 @@
 
 
 # define high level vars
-jobname=bcf_norm
-executable=/$HOME/EMR_WGS/scripts/normalize_variants.sbatch
+jobname=bam_merge
+executable=/$HOME/EMR_WGS/scripts/merge_bams.sbatch
 
 # define input and output files
 reference=/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta
@@ -35,6 +35,6 @@ sbatch --job-name=$jobname \
 --time=24:00:00 \
 $executable
 
-echo I submitted to normalize my bcf file!
+echo I submitted to merge all bams!
 echo ----------------------------------------------------------------------------------------
 
