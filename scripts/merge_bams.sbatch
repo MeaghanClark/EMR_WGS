@@ -18,10 +18,6 @@ module list
 
 bcftools --version
 
-REFERENCE='/mnt/research/Fitz_Lab/ref/butterfly/posk/POSK_Genome.fasta'
-BAMS='/mnt/research/Fitz_Lab/projects/posk/map/mi_posk_bam_list_qc.txt'
-OUTFILE='/mnt/gs21/scratch/lindero1/posk/mask/mi_posk_all_qc.bam'
-
 CMD="samtools merge -O BAM --reference $REFERENCE -b $BAMS -o $OUTFILE -@ $CPUS"
 
 printf "\n%s\n\n" "$CMD"
