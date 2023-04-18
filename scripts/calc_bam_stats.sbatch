@@ -19,7 +19,7 @@ bcftools --version
 
 # define array vars
 OUTFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/mask/bamstats/EMR_all_qc.${SLURM_ARRAY_TASK_ID}.bamstats 
-SCAFLIST=$HOME/EMR_WGS/scaffolds/scaff_list_${SLURM_ARRAY_TASK_ID}.txt 
+SCAFLIST=$HOME/EMR_WGS/scaffolds/scaf_list_${SLURM_ARRAY_TASK_ID}.txt 
 
 # run bamstats
 while read -r SCAF
