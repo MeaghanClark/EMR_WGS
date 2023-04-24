@@ -20,7 +20,7 @@ logfilesdir=$HOME/EMR_WGS/log_sum_bamstats_${date}
 
 # define running vars
 cpus=1
-ram_per_cpu=24G
+ram_per_cpu=400G
 
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
@@ -35,7 +35,7 @@ sbatch --job-name=$jobname \
 --time=24:00:00 \
 $executable
 
-echo I submitted to normalize my bcf file!
+echo I submitted to summarize bamstats files!
 echo ----------------------------------------------------------------------------------------
 
 
