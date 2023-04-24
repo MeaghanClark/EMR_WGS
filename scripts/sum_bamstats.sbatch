@@ -12,8 +12,8 @@
 #load programs we want to use
 module purge
 module load powertools
-module load GCC/10.2.0
-module load GSL/2.6
+module load GCC/8.3.0 OpenMPI/3.1.4
+module load R/4.0.2
 module list 
 
 bcftools --version
