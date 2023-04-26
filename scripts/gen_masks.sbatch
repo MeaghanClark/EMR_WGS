@@ -16,8 +16,8 @@ module list
 
 echo The date is $DATE
 
-CMD="$EXEC --mindepth 110 --maxdepth 1514 --minmq 35 --maxmq0 0.1 --minbq 20 --maxbq0 0.01 $BAMSTATS $OUTPREFIX > $REPORT"
-# changed mindepth from 220 to 110 because I have fewer individuals than tha posk project, should double check that this was okay with Tyler
+CMD="$EXEC --mindepth 88 --maxdepth 1514 --minmq 35 --maxmq0 0.1 --minbq 20 --maxbq0 0.01 $BAMSTATS $OUTPREFIX > $REPORT"
+# changed mindepth from 220 to 88 because I have fewer individuals than tha posk project, should double check that this was okay with Tyler
 printf "\n%s\n\n" "$CMD"
 eval $CMD
 
