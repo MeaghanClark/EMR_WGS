@@ -9,7 +9,6 @@
 # Output: normalized zipped bcf file 
 
 #load programs we want to use
-#load programs we want to use
 module purge
 module load powertools
 module load GCC/8.3.0 OpenMPI/3.1.4
