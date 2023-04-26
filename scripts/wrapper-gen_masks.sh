@@ -4,15 +4,10 @@
 
 #  run from project directory (where you want output directory to be created)
 
-
-
-REPORT='/mnt/research/Fitz_Lab/projects/posk/variants/masks/mi_posk_mask_report.txt'
-
-
-
 # define high level vars
 jobname=gen_masks
-executable=/$HOME/EMR_WGS/scripts/bedmask.pl
+perl_script=$HOME/EMR_WGS/scripts/bedmask.pl
+executable=$HOME/EMR_WGS/scripts/gen_masks.sbatch
 
 # define input and output files
 bamstats=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_all_qc.bamstats
@@ -32,7 +27,7 @@ ram_per_cpu=24G
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 
 sbatch --job-name=$jobname \
---export=EXEC=$executable,BAMSTATS=$bamstats,OUTPREFIX=$outprefix,CPUS=$cpus,RUN_NAME=$run_name,LOGFILESDIR=$logfilesdir,DATE=$date \
+--export=EXEC=$perl_script,BAMSTATS=$bamstats,OUTPREFIX=$outprefix,REPORT=$report,CPUS=$cpus,RUN_NAME=$run_name,LOGFILESDIR=$logfilesdir,DATE=$date \
 --cpus-per-task=$cpus \
 --mem-per-cpu=$ram_per_cpu \
 --output=$logfilesdir/${jobname}_%A.out \
@@ -40,7 +35,7 @@ sbatch --job-name=$jobname \
 --time=24:00:00 \
 $executable
 
-echo I submitted to normalize my bcf file!
+echo I submitted to generate a bed mask!
 echo ----------------------------------------------------------------------------------------
 
 
