@@ -2,12 +2,12 @@
 
 ########## SBATCH Lines for Resource Request ##########
 
-#SBATCH --time=24:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --cpus-per-task=2 1         # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=16G            # memory required per allocated CPU (or core)
+#SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --cpus-per-task=1         # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem-per-cpu=400G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=vcf_stats_sum      # you can give your job a name for easier identification (same as -J)
-#SBATCH --output=$HOME/EMR_WGS/log_vcf_stats_sum/${jobname}_%A.out
-#SBATCH --error=$HOME/EMR_WGS/log_vcf_stats_sum/${jobname}_%A.err
+#SBATCH --output=$HOME/EMR_WGS/log_vcf_stats_sum/${SLURM_JOB_NAME}_%A.out
+#SBATCH --error=$HOME/EMR_WGS/log_vcf_stats_sum/${SLURM_JOB_NAME}_%A.err
 
 ##########
 
@@ -21,7 +21,7 @@ module list
 # define variables
 EXEC='$HOME/EMR_WGS/scripts/qualSummaryStats.R'
 STATLIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_vcfstats_list.txt'
-OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_norm.vcfstats.summary'
+OUTFILE='$HOME/EMR_WGS/variants/masks/EMR_norm.vcfstats.summary'
 
 # run code
 CMD="$EXEC $STATLIST $OUTFILE 3 4 5 6 7 8 9 10 11 12 13 14 15"
