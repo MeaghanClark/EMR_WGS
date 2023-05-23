@@ -2,12 +2,12 @@
 
 ########## SBATCH Lines for Resource Request ##########
 
-#SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --time=4:00:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=1         # number of CPUs (or cores) per task (same as -c)
 #SBATCH --mem-per-cpu=400G            # memory required per allocated CPU (or core)
-#SBATCH --job-name=vcf_stats_sum      # you can give your job a name for easier identification (same as -J)
-#SBATCH --output=$HOME/EMR_WGS/log_vcf_stats_sum/${SLURM_JOB_NAME}_%A.out
-#SBATCH --error=$HOME/EMR_WGS/log_vcf_stats_sum/${SLURM_JOB_NAME}_%A.err
+#SBATCH --job-name=bam_hists      # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/home/clarkm89/EMR_WGS/log_bamstats_hists/bamstats_hist_%A.out"
+#SBATCH --error="/mnt/home/clarkm89/EMR_WGS/log_bamstats_hists/bamstats_hist_%A.err"
 
 ##########
 
