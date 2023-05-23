@@ -26,11 +26,7 @@ for(i in c(3:9)){
     mtext((median(data[,i])*1.25), at = (median(data[,i])*1.25), col = "blue")
     
     abline(v = (median(data[,i])*2), col = "green", lwd = 2)
-<<<<<<< HEAD
-    mtext((median(data[,i])*2), at = (median(data[,i])*2), col = "")
-=======
     mtext((median(data[,i])*2), at = (median(data[,i])*2), col = "green")
->>>>>>> ce41369671bdc732fea7f6ac5282ddf97cb37618
     
     legend("topright", c("+/- 0.5", "+/- 0.25", "x2"), col = c("red", "blue", "green"), lty = 1, lwd = 2)
     
@@ -42,8 +38,4 @@ for(i in c(3:9)){
             print(paste0("Wow! I made a histogram from column ", i)) 
           }
   }
-<<<<<<< HEAD
 dev.off()
-=======
-dev.off()
->>>>>>> ce41369671bdc732fea7f6ac5282ddf97cb37618
