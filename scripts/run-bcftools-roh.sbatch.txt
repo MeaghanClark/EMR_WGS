@@ -1,0 +1,38 @@
+#!/bin/bash --login
+
+########## SBATCH Lines for Resource Request ##########
+
+#SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --cpus-per-task=1         # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem-per-cpu=20G            # memory required per allocated CPU (or core)
+#SBATCH --job-name=bcf_roh     # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/home/clarkm89/EMR_WGS/log_rohm/bcf_roh_%A.out"
+#SBATCH --error="/mnt/home/clarkm89/EMR_WGS/log_rohm/bcf_roh_%A.err"
+
+##########
+
+#load programs we want to use
+module purge
+module load powertools
+module load GCC/10.2.0
+module load GSL/2.6
+module list
+
+bcftools --version
+
+
+INFILE=$LAB/projects/massasauga/EMR_WGS/annotate_vcf/EMR_norm_annotated1.vcf.gz
+OUTDIR=/mnt/home/clarkm89/EMR_WGS/roh/
+
+# run ROH call, having bcftools calculate allele frequencies as it goes, despite the sample size
+#bcftools roh --rec-rate 1.79e-8 --output /mnt/home/clarkm89/EMR_WGS/bcftools_roh $LAB/projects/massasauga/EMR_WGS/annotate_vcf/EMR_norm_annotated1.vcf.gz
+
+bcftools roh --rec-rate 1.79e-8 --output {OUTDIR}/bcftools_roh {INFILE}
+
+
+#print some environment variables to stdout for records
+echo ----------------------------------------------------------------------------------------
+echo PRINTING SUBSET OF ENVIRONMENT VARIABLES:
+(set -o posix ; set | grep -v ^_ | grep -v ^EB | grep -v ^BASH | grep -v PATH | grep -v LS_COLORS)
+
+echo ----------------------------------------------------------------------------------------
