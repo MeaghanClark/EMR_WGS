@@ -1,14 +1,22 @@
-#!/bin/bash
+#!/bin/bash --login
 
-#--------------- EXECUTABLE ---------------
+########## SBATCH Lines for Resource Request ##########
+
+#SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --cpus-per-task=20       # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem-per-cpu=12G            # memory required per allocated CPU (or core)
+#SBATCH --job-name=merge_bams    # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/home/clarkm89/EMR_WGS/log_bamstats_hists/annotations_hist_%A.out" # CHANGE
+#SBATCH --error="/mnt/home/clarkm89/EMR_WGS/log_bamstats_hists/annotations_hist_%A.err" # CHANGE
+
+##########
 
 # This script merges bam files 
-# Last updated 04/15/2023 by MI Clark,based on script by T Linderoth
+# Last updated 05/21/2024 by MI Clark,based on script by T Linderoth
 # Input: Reference genome with path, zipped bcf file
 #
 # Output: normalized zipped bcf file 
 
-#load programs we want to use
 #load programs we want to use
 module purge
 module load powertools
@@ -18,7 +26,14 @@ module list
 
 bcftools --version
 
-CMD="samtools merge -O BAM --reference $REFERENCE -b $BAMS -o $OUTFILE -@ $CPUS"
+# define variables
+REF='/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta'
+BAMS='/mnt/research/Fitz_Lab/projects/posk/map/mi_posk_bam_list_qc.txt' # make list of bamfiles 
+OUTFILE='/mnt/gs21/scratch/lindero1/posk/mask/mi_posk_all_qc.bam' # change to where output should go
+
+CMD="samtools merge -O BAM --reference $REFERENCE -b $BAMS -o $OUTFILE -@ $SLURM_CPUS_PER_TASK"
+
+# run command 
 
 printf "\n%s\n\n" "$CMD"
 
@@ -26,7 +41,7 @@ eval $CMD
 
 wait
 
-samtools index -@ $CPUS "$OUTFILE"
+samtools index -@ $SLURM_CPUS_PER_TASK "$OUTFILE"
 
 
 #print some environment variables to stdout for records
