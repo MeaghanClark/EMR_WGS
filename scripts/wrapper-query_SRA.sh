@@ -1,34 +1,28 @@
 #!/bin/bash
 
-# wrapper-runfastQC.sh
-# This script starts slurm jobs to runs fastQC on raw sequencing reads in parallel 
+# wrapper-query_SRA.sh
+# This script starts slurm jobs to download a list of files from the SRA database
 # Last updated 06/13/2024 by MI Clark, script format inspired by R Toczydlowski 
 
-# Required export to executable: 
-#	(1) array_key = .txt file with full paths to raw sequencing file to run through fastQC, one per line
-#	(2) outdir = the path to the output directory 
-
-
 # define high level variables
-jobname=run_fastQC
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
+jobname=query_SRA
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/Mathur2023_SRA_list.txt # MAKE list of files to download 
 rundate=$(date +%m%d%Y)
 
 # define directories
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawReadsQC
-logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/fastQC
+outdir=/mnt/scratch/clarkm89/EMR_WGS_Mathur2023
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/query_SRA
  
 # make sure log dir exists
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 
 # define slurm job details
-cpus=1
-ram_per_cpu=24G
+cpus=4
+ram_per_cpu=12G
 array_no=$(cat $array_key | wc -l)
 
 # define executable 
-executable=/mnt/research/Fitz_Lab/projects/massasauga/WGS/scripts/run_fastQC.sbatch # CHANGE
-
+executable=/mnt/research/Fitz_Lab/projects/massasauga/WGS/scripts/query_SRA.sbatch
 
 sbatch --job-name=$jobname \
 	--array=1-$array_no \
