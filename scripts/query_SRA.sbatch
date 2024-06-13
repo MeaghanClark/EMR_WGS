@@ -18,10 +18,10 @@ module list
 
 SEQ_ID=$(awk -v row="${SLURM_ARRAY_TASK_ID}" 'NR==row{print $0}' $ARRAY_KEY | tr -d '\r')
 
-echo SEQFILE defined as $SEQFILE
+echo SEQ_ID defined as $SEQ_ID
 
 # query SRA using fastq-dump
-fastq-dump --outidr ${OUTDIR} --skip-technical --readids --read-filter pass --dumpbase --split-3 --clip -e ${CPUS} ${SEQ_ID}
+fastq-dump --outdir ${OUTDIR} --skip-technical --readids --read-filter pass --dumpbase --split-3 --clip -e ${CPUS} ${SEQ_ID}
 
 wait
 
