@@ -13,7 +13,7 @@ ARRAY_KEY=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/Mathur
 while read SEQ_ID
 do 
 	
-	fasterq-dump --outdir ${OUTDIR} --split-3 ${SEQ_ID}
+	fasterq-dump --outdir ${OUTDIR} --split-3 --bufsize=100000 --curcache 10000 --details ${SEQ_ID}
 	
 	wait
 	
