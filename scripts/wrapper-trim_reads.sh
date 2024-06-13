@@ -10,13 +10,13 @@
 
 # define high level variables
 jobname=trim_reads
-array_key=/path/to/array_key # CHANGE
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
 rundate=$(date +%m%d%Y)
 
 # define directories
-indir=/path/to/raw/sequence/reads
-outdir=/path/to/outdir # CHANGE
-logfilesdir=/path/to/logs # CHANGE
+indir=/mnt/research/Fitz_Lab/projects/massasauga/WGS/rawData/
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/WGS/processedReads/
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/WGS/logs/
  
 # define slurm job details
 cpus=1
@@ -31,8 +31,8 @@ sbatch --job-name=$jobname \
 	--export=JOBNAME=$jobname,ARRAY_KEY=$array_key,CPUS=$cpus,RUNDATE=$rundate,EXECUTABLE=$executable,LOGFILESDIR=$logfilesdir,OUTDIR=$outdir,INDIR=$indir \
 	--cpus-per-task=$cpus \
 	--mem-per-cpu=$ram_per_cpu \
-	--output=$logfilesdir/${jobname}_${rundate}_%A_%a.out \
-	--error=$logfilesdir/${jobname}_${rundate}_%A_%a.err \
+	--output=$logfilesdir/${jobname}_${rundate}_%A-%a.out \
+	--error=$logfilesdir/${jobname}_${rundate}_%A-%a.err \
 	--time=24:00:00 \
 	$executable
 

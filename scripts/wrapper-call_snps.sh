@@ -2,7 +2,7 @@
 		
 # wrapper-call_snps.sh		
 # This script starts an array job to call SNPs on different chromosomes specified by files in "chrom_list_dir"
-# Last updated 05/17/2024 by MI Clark, originally written by R Toczydlowski 
+# Last updated 05/29/2024 by MI Clark, originally written by R Toczydlowski 
 
 #  run from project directory (where you want output directory to be created)
 
@@ -11,11 +11,10 @@ date=$(date +%m%d%Y)
 jobname=call_snps #label for SLURM book-keeping 
 
 #define dirs:
-homedir=/mnt/home/clarkm89
-logfilesdir=log_call_snps_${date} # CHANGE 
-indir=/path/EMR_WGS_alignments_02282023 # CHANGE
-outdir=/path/called_snps # CHANGE
-chrom_list_dir=/path/to/dir/with/files/specifying/chroms # ***need to make chrom files
+logfilesdir=/mnt/research/FitzLab/projects/massasauga/WGS/logs/logs_${jobname}
+indir=/mnt/research/Fitz_Lab/ref/massasauga/alignments/ 
+outdir=/mnt/research/Fitz_Lab/ref/massasauga/variants/
+chrom_list_dir=/mnt/research/Fitz_Lab/ref/massasauga/scripts/keys/chrom
 
 # define slurm job details
 cpus=1 #number of CPUs to request/use per dataset 
@@ -23,10 +22,9 @@ ram_per_cpu=2G #amount of RAM to request/use per CPU
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable and reference genome 
-executable=./scripts/call_snps.sbatch #script to run 
-reference=$homedir/$run_name/reference/Scatenatus_HiC_v1.1.fasta #filepath of reference file
-list_of_bamfiles=$homedir/$run_name/bam_list_path.txt #list with paths to bam files we want to call SNPs for
-
+executable=/mnt/research/Fitz_Lab/ref/massasauga/scripts/call_snps.sbatch #script to run 
+reference=/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta #filepath of reference file
+list_of_bamfiles=/mnt/research/Fitz_Lab/ref/massasauga/scripts/bamlist.txt #list with paths to bam files we want to call SNPs for
 
 #---------------------------------------------------------
 	
@@ -49,8 +47,8 @@ sbatch --job-name=$jobname \
 		--export=REFERENCE=$reference,CPUS=$cpus,LIST_OF_BAMFILES=$list_of_bamfiles,OUTDIR=$outdir,LOGFILESDIR=$logfilesdir,CHROM_LIST_DIR=$chrom_list_dir \
 		--cpus-per-task=$cpus \
 		--mem-per-cpu=$ram_per_cpu \
-		--output=./$logfilesdir/${jobname}_%A_%a.out \
-		--error=./$logfilesdir/${jobname}_%A_%a.err \
+		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
+		--error=$logfilesdir/${jobname}_${date}_%A-%a.err \
 		--time=72:00:00 \
 		$executable
 			

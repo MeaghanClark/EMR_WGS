@@ -30,7 +30,7 @@ echo I will put the output in ${OUTDIR}/${VCF_NAME}.bcf
 #	(3) OUTDIR
 
 # path to a file that contains the list of chromosomes for this array job no. 
-CHROMLIST="${CHROM_LIST_DIR}chrom_list${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes
+CHROMLIST="${CHROM_LIST_DIR}/chrom_list_${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes
 BCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}
 
 
@@ -38,7 +38,7 @@ BCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}
  bcftools mpileup \
  -f $REFERENCE \
  -b $LIST_OF_BAMFILES \
- -r $CHROMLIST \ # list of chromosomes to call SNPs on
+ -R $CHROMLIST \ # list of chromosomes to call SNPs on
  -C 0 \
  -d 10000 \
  -L 10000 \
