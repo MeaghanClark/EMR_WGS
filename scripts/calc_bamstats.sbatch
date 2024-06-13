@@ -20,7 +20,7 @@ bcftools --version
 # define array vars
 CHROMLIST="${CHROM_LIST_DIR}/chrom_list_${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes
 
-OUTFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/mask/bamstats/EMR_all_qc.${SLURM_ARRAY_TASK_ID}.bamstats # CHANGE outfile
+OUTFILE=${OUTDIR}/EMR_all_qc.${SLURM_ARRAY_TASK_ID}.bamstats # CHANGE outfile
 
 # run bamstats
 while read -r CHROM

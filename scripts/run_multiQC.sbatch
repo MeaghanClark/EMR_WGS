@@ -2,7 +2,7 @@
 
 # run_multiQC.sbatch
 # This script runs multiQC on fastQC reports to produce a summary report
-# Last updated 05/16/2024 by MI Clark, script format inspired by R Toczydlowski 
+# Last updated 06/03/2024 by MI Clark, script format inspired by R Toczydlowski 
 
 #--------------- EXECUTABLE ---------------
 
@@ -13,8 +13,8 @@ module load MultiQC/1.7-Python-3.6.6
 module list
 
 # required variables: 
-INDIR=path/to/fastQC/files
-OUTDIR=path/to/output/dir
+INDIR=/mnt/research/Fitz_Lab/projects/massasauga/WGS/rawReadsQC
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/WGS/rawReadsQC
 
 # run multiQC
 

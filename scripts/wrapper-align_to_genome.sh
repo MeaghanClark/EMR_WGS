@@ -2,18 +2,18 @@
 
 # wrapper-align_to_genome.sh		
 # This script starts an array job to align trimmed sequencing reads output by trim_reads.sbatch to a reference genome
-# Last updated 05/17/2024 by MI Clark, originally written by R Toczydlowski 
+# Last updated 06/03/2024 by MI Clark, originally written by R Toczydlowski 
 
 # define high level variables
 date=$(date +%m%d%Y)
 jobname=align_to_genome #label for SLURM book-keeping 
-array_key=/path/to/array_key # CHANGE, file with names of trimmed reads, one ind per line, reads separated by blank space
+array_key=/mnt/research/FitzLab/projects/massasauga/WGS/scripts/keys/trimmed_reads.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
 
 #define dirs:
-indir=/path/to/trimmed/reads
-outdir=/path/to/outdir/
+indir=/mnt/research/FitzLab/projects/massasauga/WGS/processedReads/
+outdir=/mnt/research/FitzLab/projects/massasauga/WGS/alignments/
 scratchnode=/mnt/scratch/clarkm89/massasauga_alignments_temp # path to scratch dir where temp files will be stored
-logfilesdir=log_aligntogenome_${date} #name of directory to create and then write log files to
+logfilesdir=/mnt/research/FitzLab/projects/massasauga/WGS/logs/logs_${jobname} #name of directory to create and then write log files to
 
 #if input directory doesn't contain at least 1 .gz file; print warning, otherwise proceed with files that are there
 n_inputfiles=($(ls $indir/*.gz | wc -l))
@@ -21,7 +21,7 @@ if [ $n_inputfiles = 0 ]
 	then echo WARNING - there are no .gz files in $indir, go investigate
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
-if [ ! -d ./$logfilesdir ]; then mkdir ./$logfilesdir; fi
+if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 
 
 # define slurm job details
@@ -30,8 +30,8 @@ ram_per_cpu=4G #amount of RAM to request/use per CPU CHANGE
 array_no=$(cat $array_key | wc -l)
 
 # define executable and reference genome 
-executable=./scripts/align_to_genome.sbatch #script to run 
-reference=$homedir/$run_name/reference/Scatenatus_HiC_v1.1.fasta #filepath of reference file
+executable=/mnt/research/FitzLab/projects/massasauga/WGS/scripts/align_to_genome.sbatch #script to run 
+reference=/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta #filepath of reference file
 
 #---------------------------------------------------------
 # required exports to executable: 
@@ -48,8 +48,8 @@ sbatch --job-name=$jobname \
 		--export=ARRAY_KEY=$array_key,REFERENCE=$reference,CPUS=$cpus,SCRATCHNODE=$scratchnode,INDIR=$indir,OUTDIR=$outdir,LOGFILESDIR=$logfilesdir \
 		--cpus-per-task=$cpus \
 		--mem-per-cpu=$ram_per_cpu \
-		--output=./$logfilesdir/${jobname}_%A_%a.out \
-		--error=./$logfilesdir/${jobname}_%A_%a.err \
+		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
+		--error=$logfilesdir/${jobname}_${date}_%A-%a.err \
 		--time=48:00:00 \
 		$executable
 		

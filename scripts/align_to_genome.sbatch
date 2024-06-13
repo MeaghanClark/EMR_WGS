@@ -3,7 +3,7 @@
 # align_to_genome.sbatch
 # This script uses bwa mem to aligned trimmed and QC-checked reads to a reference genome. 
 # resulting sam files are converted to bam, then indexed, sorted, duplicates are removed, and read pair overlap trimmed
-# Last updated 05/17/2024 by MI Clark, originally written by MI Clark and R Toczydlowski based on script by B Reid
+# Last updated 06/03/2024 by MI Clark, originally written by MI Clark and R Toczydlowski based on script by B Reid
 
 #--------------- EXECUTABLE ---------------
 

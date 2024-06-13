@@ -28,8 +28,8 @@ bcftools --version
 
 # define variables
 REF='/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta'
-BAMS='/mnt/research/Fitz_Lab/projects/posk/map/mi_posk_bam_list_qc.txt' # make list of bamfiles 
-OUTFILE='/mnt/gs21/scratch/lindero1/posk/mask/mi_posk_all_qc.bam' # change to where output should go
+BAMS='/mnt/research/FitzLab/projects/massasauga/WGS/scripts/keys/bamlist.txt' # make list of bamfiles 
+OUTFILE='/mnt/scratch/clarkm89/EMR_WGS/' # put big BAM in scratch
 
 CMD="samtools merge -O BAM --reference $REFERENCE -b $BAMS -o $OUTFILE -@ $SLURM_CPUS_PER_TASK"
 
