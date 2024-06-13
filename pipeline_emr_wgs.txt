@@ -1,0 +1,526 @@
+# Meaghan's Pipeline for WGS EMR Work --------------------------------------------------------------------------------------------------------
+# updated 5/23/2024
+
+GOAL: 
+INPUT:
+PROGRAM:
+INSTALLED?
+SCRIPTS:
+CODE:
+OUTPUT:
+
+
+To do: 
+- write scripts locally 
+- documents input file names and output files names
+- indicate scripts 
+
+Directory structure: 
+
+main: /mnt/research/FitzLab/projects/massasauga/WGS/
+scripts: /mnt/research/FitzLab/projects/massasauga/WGS/scripts
+rawdata: /mnt/research/FitzLab/projects/massasauga/WGS/rawData
+logfiles: /mnt/research/FitzLab/projects/massasauga/WGS/logs
+processed reads: /mnt/research/FitzLab/projects/massasauga/WGS/processedReads
+alignments: /mnt/research/FitzLab/projects/massasauga/WGS/alignments
+variants: /mnt/research/FitzLab/projects/massasauga/WGS/variants
+ 
+temporary: /mnt/scratch
+
+ARRAY KEYS: 
+- path to raw sequencing files, one per line
+- path to raw sequencing files, forward read, reverse read pairs, one pair per line, separated by tabs
+- chrom_list:
+	# get sequence length of each scaffold
+	awk '{print length}' Scatenatus_HiC_v1.1.fasta | awk ' NR%2==0 {print;} ' > ./scaf_lengths.txt 
+	# get total length
+	awk '{sum += $1} END {print sum}' ./scaf_lengths.txt # 1521034437
+	# largest scaffold is ~ 20% of entire genome, so break genome into approx. 5 lists of approx. equal length
+		1
+		2
+		3+4
+		#### in r #### 
+		1: 1, 2: 2, 3: 3+4, 4: 5-7, 5: 8-2004
+		# maybe ask Tyler about this! Use -R option, so need "CHROM", "BEG" and "END", which could keep each scaffold to one list, or could split scaffolds to make groups equal... how many groups? 
+	
+	
+
+SCRIPTS: 
+** make as many as possible these array jobs! 
+** only use wrappers for scripts that I'm doing per individual/population 
+- "run_fastQC.sh": FastQC
+- Command line: MultiQC 
+- "trim_reads.sh": Trim adapters AND trim polyG tails ... summarize somehow? 
+- "align_from_list": align 
+- filter/sort, trim overlap
+- call SNPs
+- normalize
+- merge bams
+- run bamstats
+- summarize bamstats
+- generate pass/fail bed files
+- run VCFstats
+**bcftools stats
+- summarize VCFstats
+- annotate VCF 
+- make PCA
+- ARGWEAVER
+
+
+QUESTIONS:  (*) marks things to look into in the text
+- at what step to consider an individual "failed"
+- if I call SNPs on sex chromosomes in the "correct" way (taking ploidy into account), do I then filter and annotate those sites separately as well? 
+- what are potential areas for issues?
+- how to deal with probable batch effects? batch effects therkidssen (sp?) lab paper
+- missing critical steps? any important filters that I am missing? 
+		allele balance? repeat masker
+- favorite programs for pop gen stats meant for high coverage WGS data? 
+
+novoplasty --> what program does better? for mitochontrial genomes, mitochondrial analyses --> way to pinpoint contamination? 
+
+# ----------------------------------------------------------------------------------------
+
+# STEP 0: Download data from UM server/NCBI --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+Mathur et al. 2023 genomes: https://www.ncbi.nlm.nih.gov/bioproject?term=PRJNA975611
+
+
+# STEP 1: Raw sequence quality control--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+Notes: could remove duplicate reads before mapping --> will remove good data, but is good for low coverage sequencing, if removing, do as first step.  
+- somewhere in here, be sure to remove reads below 70 basepairs 
+
+- FASTQC ---------------------------------------------------------------------------------
+GOAL: evaluate sequencing quality
+INPUT: Forward and reverse raw reads (fq.gz)
+PROGRAM: FASTQC, http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+INSTALLED? yes (hpcc)
+SCRIPTS: 
+* wrapper-run_fastQC.sh (starts an array job)
+* run_fastQC.sbatch
+
+- MULTIQC --------------------------------------------------------------------------------
+GOAL: summarize FASTQC files 
+INPUT: FASTQC filess
+PROGRAM: MULTIQC
+INSTALLED? yes (hpcc)
+SCRIPTS: (*)
+OUTPUT: .HTML report
+
+- TRIM ADAPTERS --------------------------------------------------------------------------
+GOAL: remove any adapter contamination from sequencing reads 
+INPUT: 
+(1) List of individuals 
+(1) Forward and reverse raw reads (fq.gz)
+PROGRAM: /mnt/research/Fitz_Lab/software/cutadapt/bin/cutadapt
+INSTALLED? yes (fitz lab research dir)
+SCRIPTS: (*)
+OUTPUT: Trimmed reads, two files per individual (forward and reverse)
+
+- TRIM POLYG TAILS -------------------------------------------------------------------
+artifactual things that are not well handled by BWA --> polyG tails, depends on library quality
+caused by no signal on the novaseq 6000/ any illumina two-color chemistry sequencer no signal is a G (stupid)
+tend to be on 3' end of sequence
+trim them off! thresholds are somewhat arbitrary 
+look at distribution of polyG length in reference genome and use that to set parameters
+big problem--> will show up as enriched duplicate sequence in FASTQC
+https://sequencing.qcfail.com/articles/illumina-2-colour-chemistry-can-overcall-high-confidence-g-bases/
+https://academic.oup.com/bioinformatics/article/34/17/i884/5093234
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5374548/
+fastp-- min length 10? disable adapter trimming
+
+GOAL: Trim polyG tails caused by illumina two-color chemistry "no signal" indicator
+INPUT: 
+PROGRAM: fastp https://academic.oup.com/bioinformatics/article/34/17/i884/5093234
+INSTALLED? yes (hpcc)
+SCRIPTS: n/a
+CODE:
+##########################################################################################
+
+##########################################################################################
+OUTPUT:
+- fastp will also give you quality control stats
+
+# ----------------------------------------------------------------------------------------
+
+# STEP 2: Align to EMR genome ----------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+- ALIGN WITH BWA ------------------------------------------------------------------------------------
+GOAL: align pairs of forward and reverse reads to reference genome 
+INPUT: 
+(1) trimmed reads (fq.gz)
+(2) reference genome
+PROGRAM: BWA/0.7/17
+INSTALLED? yes (hpcc)
+SCRIPTS: included in wrapper-align_to_genome.sh and align_to_genome.sbatch
+CODE: 
+##########################################################################################
+
+bwa mem -t $CPUS $REFERENCE ${INDIR}/$FORWARDREAD ${INDIR}/$REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+
+##########################################################################################
+OUTPUT: aligned .sam files, e.g. ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+
+- FILTER WITH SAMTOOLS -------------------------------------------------------------------------------
+GOAL: convert .sam files to .bam files, sort bams by read names, filter for proper pairs
+ of reads, add matescore tags, sort again (*), and remove duplicates
+INPUT: aligned .sam files from BWA
+PROGRAM: SAMtools
+INSTALLED? yes (hpcc)
+SCRIPTS: included in wrapper-align_to_genome.sh and align_to_genome.sbatch
+CODE: 
+##########################################################################################
+
+samtools view -Sb -o ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam #change sam to bam
+samtools sort -n -o ${SCRATCHNODE}/${SAMPLE_NAME}.sort.bam ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam #sort by readname
+samtools view -f 0x2 -b ${SCRATCHNODE}/${SAMPLE_NAME}.sort.bam > ${SCRATCHNODE}/${SAMPLE_NAME}.sort.filt.bam # filter for proper pairs of reads
+samtools fixmate -m ${SCRATCHNODE}/${SAMPLE_NAME}.sort.filt.bam ${SCRATCHNODE}/${SAMPLE_NAME}.fixmate.bam #add matescore tags
+samtools sort -o ${SCRATCHNODE}/${SAMPLE_NAME}.positionsort.bam ${SCRATCHNODE}/${SAMPLE_NAME}.fixmate.bam #sorting
+samtools markdup -r ${SCRATCHNODE}/${SAMPLE_NAME}.positionsort.bam ${OUTDIR}/${SAMPLE_NAME}.rmdup.bam
+
+##########################################################################################
+OUTPUT: .bam files (one per individual)
+
+- TRIM READ OVERLAP-----------------------------------------------------------------------
+		
+GOAL: trip overlap between paired reads, as overlap violates the assumptions of genotype callers
+INPUT: 
+PROGRAM: bam clipOverlap, part of BamUtil
+INSTALLED? yes (hpcc)
+SCRIPTS: n/a
+CODE:
+OUTPUT:
+	
+# ----------------------------------------------------------------------------------------
+
+# Step 3: Call SNPs --------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+- CALL VARIANTS --------------------------------------------------------------------------
+GOAL: call SNPS from unfiltered BAMs to make an all sites vcf file 
+INPUT: 
+(1) list of bams 
+(2) reference genome
+PROGRAM: BCFtools 
+INSTALLED? yes (hpcc)
+SCRIPTS: call_snps_from_list.sbatch and wrapper-call_snps_from_list.sh
+CODE:
+##########################################################################################
+
+ bcftools mpileup \
+ -f $REFERENCE \
+ -b $LIST_OF_BAMFILES \
+ -C 0 \
+ -d 10000 \
+ -L 10000 \
+ -q 20 \
+ -Q 13 \
+ --ns "UNMAP,SECONDARY,QCFAIL,DUP" \
+ -a "FORMAT/AD,FORMAT/DP,FORMAT/QS,FORMAT/SP,FORMAT/SCR,INFO/AD,INFO/SCR" \
+ -p \
+ -O u \
+ | bcftools call \
+ -a PV4,GQ,GP \
+ -m \
+ -P 0.002 \ 
+ -O u \
+ | bcftools +fill-tags \
+ -O b \
+ -o ${OUTDIR}/${VCF_NAME}.bcf.gz \
+-- -t 'AF,ExcHet,NS'
+
+# informed prior (-P) is not super important, but can be informed by heterozygosity/pi, default is 0.001 (human nucleotide diversity)
+# here I will use 0.002, informed by pi_geneDes in Mathur et al. 2023 Appendix I. 
+
+##########################################################################################
+OUTPUT: all sites VCF file 
+- check that output retains invariant sites *** 
+- vcftools will remove invariant sites
+- pixie website! 
+
+- RENAME SAMPLES --------------------------------------------------------------------------
+GOAL: rename samples 
+INPUT: all sites .bcf file
+PROGRAM: bcftools reheader
+INSTALLED? yes (hpcc)
+SCRIPTS: n/a
+CODE:
+##########################################################################################
+
+# something like: 
+bcftools reheader -s $NEWNAMES --threads 24 -o $OUTBCF $OUTBCF_TMP
+
+##########################################################################################
+OUTPUT: .bcf with properly named samples
+
+
+# Step 4: Filter VCFs ------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+- NORMALIZE VARIANTS ---------------------------------------------------------------------
+GOAL: left-align and normalize INDELs, check if REF alleles match the reference, split multiallelic sites into multiple rows
+INPUT: bcf
+PROGRAM: bcftools norm https://samtools.github.io/bcftools/bcftools.html#norm
+INSTALLED? yes (hpcc)
+SCRIPTS: yes, look up! 
+CODE:
+OUTPUT: normalized .bcf
+
+- SAMTOOLS -------------------------------------------------------------------------------
+GOAL: Merge bam files into one super BAM to use for filtering and quality assessment
+INPUT: 
+(1) .bam files
+(2) reference genome
+PROGRAM: SAMTOOLS merge
+INSTALLED? yes (hpcc)
+SCRIPTS: wrapper-merge_bams.sh, merge_bams.sh
+CODE:
+##########################################################################################
+
+samtools merge -O BAM --reference $REFERENCE -b $BAMS -o $OUTFILE -@ $CPUS
+
+##########################################################################################
+OUTPUT: MEGA bam file
+- *Tyler might edit C++ file to not have to make superBAM
+
+- BAMSTATS -------------------------------------------------------------------------------
+GOAL: Calculate helpful statistics for determining depth and mapping quality cut offs, and assess impact of batch effects
+INPUT: 
+(1) scaffold list
+(2) reference
+(3) superBAM
+PROGRAM: bamstats
+INSTALLED? yes (hpcc)
+SCRIPTS: yes, look up
+CODE:
+##########################################################################################
+
+# run bamstats code 
+
+# then merge, something like: 
+cat /mnt/gs21/scratch/lindero1/posk/rangewide/mask/posk_all_qc_1.bamstats /mnt/gs21/scratch/lindero1/posk/rangewide/mask/posk_all_qc_2.bamstats /mnt/gs21/scratch/lindero1/posk/rangewide/mask/posk_all_qc_3.bamstats /mnt/gs21/scratch/lindero1/posk/rangewide/mask/posk_all_qc_4.bamstats > /mnt/gs21/scratch/lindero1/posk/rangewide/mask/posk_all_qc_tmp.bamstats
+(head -n1 /mnt/gs21/scratch/lindero1/posk/rangewide/mask/posk_all_qc_tmp.bamstats && grep -v "depth" /mnt/gs21/scratch/lindero1/posk/rangewide/mask/posk_all_qc_tmp.bamstats) > /mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/mask/posk_all_qc.bamstats
+
+##########################################################################################
+OUTPUT: .bamstats file
+- cut offs for depth and mapping quality 
+- should be very informative for batch effects --> what do the difference sources look like in terms of mapping quality etc. 
+	- should choose cut offs from the total distribution, but informative how multimodal the distributions look... 
+
+- BAMSTATS SUMMARY -----------------------------------------------------------------------
+
+GOAL: summarizes BAM statistics 
+INPUT: 
+(1) bamstats file
+(2) list of bamstats files to process (in this case 1)
+PROGRAM: custom code
+INSTALLED? n/a
+SCRIPTS: bamstats_summary.sh and qualSummaryStats.R
+CODE:
+##########################################################################################
+# something like: 
+EXEC='/mnt/research/Fitz_Lab/projects/mosaic/variants/masks/qualSummaryStats.R'
+STATLIST='/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/mask/posk_all_qc_bamstats_list.txt'
+OUTFILE='/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/mask/posk_all_qc.bamstats.summary'
+
+CMD="$EXEC $STATLIST $OUTFILE 3 4 5 6 7 8 9"
+##########################################################################################
+OUTPUT: .bamstats.summary file 
+
+- MAKE BED FILES AND REPORT ---------------------------------------------------------------
+
+GOAL: Generate bed file of masked genome sites based on BAM statistics
+INPUT: 
+(1) .bamstats file
+PROGRAM:
+INSTALLED?
+SCRIPTS: bedmask.pl, bed_mask.sh (may not exist yet)
+CODE:
+##########################################################################################
+##########################################################################################
+OUTPUT: pass .bed file, fail .bed file, mask report
+NOTES: 
+after looking at bamstats dist, decided quality control cut offs, run bedmask.pl, 
+generates bed masking file that gives sites that passed and failed quality control 
+expect to mask around 10-20% of data, upwards of 30% sometimes
+what is removing all my data? look in report! 
+
+- EXTRACT VCF STATS ----------------------------------------------------------------------
+
+GOAL: Generate statistics from VCF file, representing the data that is actually used for genotype calling 
+INPUT: all sites .bcf.gz
+PROGRAM: n/a
+SCRIPTS: n/a
+CODE:
+##########################################################################################
+# something like BCF='/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/norm/posk_all_genome_norm.bcf.gz'
+OUTFILE='/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/mask/posk_all_genome_norm.vcfstats'
+
+CMD="(printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' 'CHR' 'POS' 'DP' 'NS' 'QUAL' 'MQ' 'RPBZ' 'MQBZ' 'BQBZ' 'FS' 'ExcHet' 'PV4_STRAND' 'PV4_BASEQ' 'PV4_MAPQ' 'PV4_POS' && bcftools query -f '%CHROM\t%POS\t%INFO/DP\t%INFO/NS\t%QUAL\t%MQ\t%INFO/RPBZ\t%INFO/MQBZ\t%INFO/BQBZ\t%INFO/FS\t%INFO/ExcHet\t%INFO/PV4{0}\t%INFO/PV4{1}\t%INFO/PV4{2}\t%INFO/PV4{3}\n' $BCF) > $OUTFILE"
+
+##########################################################################################
+OUTPUT: .vcfstats file 
+
+- SUMMARIZE VCF STATS ----------------------------------------------------------------------
+
+GOAL: Summarize statistics from .vcfstats file, this represents the data that is actually used for genotype calling 
+INPUT: .vcfstats
+PROGRAM: n/a
+SCRIPTS: qualSummaryStats.R, vcf_stats_summary.sh (may not exist)
+CODE:
+##########################################################################################
+##########################################################################################
+OUTPUT: 
+NOTES:
+generates somewhat redundant summary of what bamstats is doing
+calculating similar statistics
+somewhat redundant
+vcfstats tells you about the distribution of the data that is actually used for genotype calling 
+--> because you've thrown out data that didn't pass bcftools mpileup/call filters, but that data is in the bam file
+should be highly correlated
+use this information to inform filters within annotate.pl file 
+
+- ANNOTATE ALL SITES VCF -----------------------------------------------------------------
+GOAL: Add BAM and VCF quality info to normalized genome-wide VC, implements excessHet filter (* pvalue to use?) 
+INPUT:
+(1) all sites BCF file
+(2) BED file of failed sites 
+(3) Group file (*) remember what this does specifically! 
+PROGRAM:
+INSTALLED?
+SCRIPTS: insertAnnotations.pl (*) need to edit, informed by vcfstats
+CODE:
+##########################################################################################
+# something like: 
+EXEC='/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/mask/insertAnnotations_posk.pl'
+BCF="/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/norm/posk_all_genome_norm.bcf.gz"
+BEDFILE='/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/mask/posk_all_qc_mask_fail.bed'
+GRPFILE='/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/mask/posk_all_qc_groups.txt'
+OUTFILE="/mnt/gs21/scratch/lindero1/posk/rangewide/annotate_vcf/posk_all_genome_norm_annotated1.vcf.gz"
+
+CMD="bcftools view --no-version $BCF | $EXEC --dpbounds 505,2524 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE"
+
+printf "\n%s\n\n" "$CMD"
+eval $CMD
+wait
+
+tabix -p vcf $OUTFILE
+
+
+# extract annotation report: 
+tail -n+8 slurm-7434274.out > vcf_annotation_report.txt # change to name of .out file from annotation slurm job
+
+##########################################################################################
+OUTPUT: 
+(1) annotated VCF
+(2) annotation report
+
+- (*) ANNOTATE SEX CHROMOSOMES -----------------------------------------------------------
+**** can incorporate sex chromosome information into calling! 
+- could sex individuals based on coverage ratios 
+- options: (1) easy: exclude sex chromosomes, call normally, remove SNPs on sex chromosomes from analyses
+(2) best: use ZW chromosome depth ratio to sex all individuals, bcftools call can provide file that indicates the sex
+of all individuals and a ploidy file where you record okay females are going to be haploid for this chromosome, this 
+is where you'd also indicate mitochondrial DNA 
+- Fitz says maybe easy way, so skip all this, Gideon says hard way lol 
+
+- ANNOTATE INDELS, SNPS WITHIN DELETIONS, MULTIALLELIC SITES -----------------------------
+
+- goal: get biallelic SNPs 
+
+- SUBSET VCF -----------------------------------------------------------------------------
+
+(***) identify what set of filtering parameters we will want to implement for downstream analyses
+- maf cut off for PCA: 0.05 
+- missing data cut offs
+
+- versions of VCF to bmake:
+	(1) biallelic SNPs, no SNPS in indels, pass quality filtering
+	(2) all sites, for nucleotide diversity
+
+After getting SNPs: 
+(1) 
+- confirm that depth is high enough for genotype call land 
+- after all QC is said and done, what is dist of average depth according to batch? are there strong batch effects? 
+	10 vs 20 ... might be a problem
+	generate PCA
+(2) start ARGweaver with unphased data! 
+	downsample to 4-5ish individuals per site 
+	
+
+# Step 5: Basic Stats ------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+- PCA*** what program to use with genotype calls?  (QC biallelic sites w/ maf) SNPrelate (large datasets!), plink, DAPC
+https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-024-05770-1
+- SFS
+- FST between sites
+- Heterozygosity 
+- Nucleotide diversity (pixy, documentation explains how to keep invariant sites) 
+- Structural variation, lostruct  
+
+# Step 6: Phase VCFs -------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+- LDhat to make recombination map? 
+
+- BEAGLE, eagle, shapeit,
+GOAL: 
+INPUT:
+PROGRAM:
+INSTALLED?
+SCRIPTS:
+CODE:
+OUTPUT:
+
+
+
+
+
+# Step 7: Make ARG ---------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+- ARGWEAVER (can work with unphased genomes)
+
+- SINGER (requires phased data at this point)
+
+GOAL: 
+INPUT:
+PROGRAM:
+INSTALLED?
+SCRIPTS:
+CODE:
+OUTPUT:
+
+
+
+
+# Step 8: Historical Dispersal ---------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+- GAIA (*) 
+
+
+# Step 9: Runs of Homozygosity ---------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+- BCFTOOLS, 
+
+GOAL: 
+INPUT:
+PROGRAM:
+INSTALLED?
+SCRIPTS:
+CODE:
+OUTPUT:
+
+
+
+
+
+
+
+
+
+
