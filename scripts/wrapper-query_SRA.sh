@@ -6,7 +6,7 @@
 
 # define high level variables
 jobname=query_SRA
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/Mathur2023_SRA_list.txt # MAKE list of files to download 
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/Mathur2023_SRA_list.txt
 rundate=$(date +%m%d%Y)
 
 # define directories

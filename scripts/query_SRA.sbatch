@@ -15,7 +15,8 @@ module load SRA-Toolkit/3.0.3
 module list
 
 # define SEQ_ID using ARRAY_KEY
-SEQ_ID=$(awk -v row=1 'NR=row{print ${SLURM_ARRAY_TASK_ID}' $ARRAY_KEY | tr -d '/r')
+
+SEQ_ID=$(awk -v row="${SLURM_ARRAY_TASK_ID}" 'NR==row{print $0}' $ARRAY_KEY | tr -d '\r')
 
 echo SEQFILE defined as $SEQFILE
 
