@@ -18,7 +18,7 @@ if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 
 # define slurm job details
 cpus=4
-ram_per_cpu=12G
+ram_per_cpu=8G
 array_no=$(cat $array_key | wc -l)
 
 # define executable 
