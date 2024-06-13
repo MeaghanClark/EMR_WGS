@@ -10,7 +10,7 @@ fastp --version
 
 
 # define read files using ARRAY_KEY
-read -r FORWARDREAD REVERSEREAD <<< $(awk -v row=${SLURM_ARRAY_TASK_ID} -F'	' 'NR=row{print $1 $2}' $ARRAY_KEY | tr -d '/r') # is -F tag correct? 
+read -r FORWARDREAD REVERSEREAD <<< $(awk -v row=${SLURM_ARRAY_TASK_ID} -F'	' 'NR=row{print $1 $2}' $ARRAY_KEY | tr -d '\r') # is -F tag correct? 
 
 FORWARDREAD=$((FORWARDREAD))
 REVERSEREAD=$((REVERSEREAD))

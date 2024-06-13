@@ -17,7 +17,7 @@ module list
 #	(2) $OUTDIR, the path to the output directory 
 
 # define SEQFILE using ARRAY_KEY
-SEQFILE=$(awk -v row=1 'NR=row{print ${SLURM_ARRAY_TASK_ID}' $ARRAY_KEY | tr -d '/r')
+SEQFILE=$(awk -v row=1 'NR==row{print ${SLURM_ARRAY_TASK_ID}}' $ARRAY_KEY | tr -d '\r') # I think something is wrong here
 
 echo SEQFILE defined as $SEQFILE
 
