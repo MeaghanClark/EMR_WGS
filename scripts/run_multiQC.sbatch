@@ -2,14 +2,13 @@
 
 # run_multiQC.sbatch
 # This script runs multiQC on fastQC reports to produce a summary report
-# Last updated 06/03/2024 by MI Clark, script format inspired by R Toczydlowski 
+# Last updated 06/16/2024 by MI Clark, script format inspired by R Toczydlowski 
 
 #--------------- EXECUTABLE ---------------
 
 # load modules
 module purge
-module load GCC/7.3.0-2.30  OpenMPI/3.1.1
-module load MultiQC/1.7-Python-3.6.6
+module load MultiQC/1.14-foss-2022b
 module list
 
 # required variables: 

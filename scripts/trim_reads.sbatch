@@ -6,7 +6,7 @@
 
 #--------------- EXECUTABLE ---------------
 
-fastp --version
+fastp --version # will work on ubuntu! 
 
 
 # define read files using ARRAY_KEY
