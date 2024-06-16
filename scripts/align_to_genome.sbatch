@@ -12,12 +12,10 @@
 #
 # Output: ${SAMPLE_NAME}.trim.bam file, forward and reverse reads aligned to reference genome and trimmed
 
-# load modules
+# load modules, updated to ubuntu
 module purge
-module load GCC/6.4.0-2.28
-module load OpenMPI/2.1.1
-module load SAMtools
-module load BWA/0.7.17
+module load BWA/0.7.17-20220923-GCCcore-12.3.0
+module load SAMtools/1.18-GCC-12.3.0
 module load powertools
 module list 
  
