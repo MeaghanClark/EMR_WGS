@@ -11,7 +11,7 @@
 
 # define high level variables
 jobname=run_fastQC
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
 rundate=$(date +%m%d%Y)
 
 # define directories
@@ -28,7 +28,7 @@ ram_per_cpu=24G
 array_no=$(cat $array_key | wc -l)
 
 # define executable 
-executable=/mnt/research/Fitz_Lab/projects/massasauga/WGS/scripts/run_fastQC.sbatch # CHANGE
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/run_fastQC.sbatch # CHANGE
 
 
 sbatch --job-name=$jobname \
