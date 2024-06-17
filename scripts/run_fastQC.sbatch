@@ -2,7 +2,7 @@
 
 # run_fastQC.sbatch
 # This script runs fastQC on raw sequencing reads in parallel 
-# Last updated 06/16/2024 by MI Clark, script format inspired by R Toczydlowski 
+# Last updated 06/17/2024 by MI Clark, script format inspired by R Toczydlowski 
 
 #--------------- EXECUTABLE ---------------
 
@@ -17,7 +17,7 @@ module list
 #	(2) $OUTDIR, the path to the output directory 
 
 # define SEQFILE using ARRAY_KEY
-SEQFILE=$(awk -v row=1 'NR==row{print ${SLURM_ARRAY_TASK_ID}}' $ARRAY_KEY | tr -d '\r') # I think something is wrong here
+SEQFILE=$(awk -v row="${SLURM_ARRAY_TASK_ID}" 'NR==row{print $0}' $ARRAY_KEY | tr -d '\r')
 
 echo SEQFILE defined as $SEQFILE
 
