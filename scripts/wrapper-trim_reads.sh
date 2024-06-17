@@ -2,7 +2,7 @@
 
 # wrapper-trim_reads.sh
 # This script starts an array job to run raw sequencing reads through fastp to trim adapters and polyG tails
-# Last updated 05/16/2024 by MI Clark, script format inspired by R Toczydlowski 
+# Last updated 06/17/2024 by MI Clark, script format inspired by R Toczydlowski 
 
 # Required export to executable: 
 #	(1) array_key = .txt file with full paths to raw sequencing files to run through fastp
@@ -10,14 +10,19 @@
 
 # define high level variables
 jobname=trim_reads
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/WGS/scripts/keys/rawData_FRcols.txt # list of raw data with forward and reverse reads for the same individual on the same line
 rundate=$(date +%m%d%Y)
 
 # define directories
 indir=/mnt/research/Fitz_Lab/projects/massasauga/WGS/rawData/
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/WGS/processedReads/
-logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/WGS/logs/
+outdir=/mnt/scratch/clarkm89/EMR_WGS/processedReads/  # outdir on scratch because of storage limits
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/WGS/logs/trimReads
  
+# make sure dir exists
+if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
+if [ ! -d $outdir ]; then mkdir $outdir; fi
+
+
 # define slurm job details
 cpus=1
 ram_per_cpu=24G
