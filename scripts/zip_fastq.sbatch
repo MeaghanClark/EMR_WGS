@@ -7,12 +7,12 @@
 #--------------- EXECUTABLE ---------------
 
 # define SEQFILE using ARRAY_KEY
-SEQFILE=$(awk -v row=1 'NR==row{print ${SLURM_ARRAY_TASK_ID}}' $ARRAY_KEY | tr -d '\r') # I think something is wrong here
+SEQFILE=$(awk -v row="${SLURM_ARRAY_TASK_ID}" 'NR==row {print $0}' $ARRAY_KEY | tr -d '\r')
 
 echo SEQFILE defined as $SEQFILE
 
-# run fastQC
-bgzip $SEQFILE --stdout > ${OUTDIR}/${SEQFILE}.fastq.gz
+# run bgzip
+bgzip $SEQFILE --stdout > ${SEQFILE}.gz
 
 wait
 
