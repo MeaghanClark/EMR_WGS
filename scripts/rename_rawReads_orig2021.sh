@@ -12,12 +12,8 @@ while read file; do
         importantinfo=$(echo "$file" | sed 's/.*_\([[:digit:]]\).fq.gz/\1/')
         # Construct the new filename
         finalID=$(echo $file | sed -E 's/^([A-Z_]+[0-9]+).*/\1/')
-        echo $finalID
-        echo $importantinfo
         newfile="${FILE_DIR}/${finalID}_${importantinfo}.fastq.gz"
-        echo $newfile
-        echo "#####"
-		# mv "$file" "$newfile"
+	 mv "${FILE_DIR}/${file}" "${newfile}"
 	#done
 done < "${FILE_DIR}/files.txt"
 
