@@ -22,7 +22,7 @@ ram_per_cpu=8G
 array_no=$(cat $array_key | wc -l)
 
 # define executable 
-executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/query_SRA.sbatch
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/zip_fastq.sbatch
 
 sbatch --job-name=$jobname \
 	--array=1-$array_no \
