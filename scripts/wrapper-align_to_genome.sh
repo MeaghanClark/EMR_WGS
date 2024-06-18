@@ -7,30 +7,32 @@
 # define high level variables
 date=$(date +%m%d%Y)
 jobname=align_to_genome #label for SLURM book-keeping 
-array_key=/mnt/research/FitzLab/projects/massasauga/WGS/scripts/keys/trimmed_reads.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
 
 #define dirs:
-indir=/mnt/research/FitzLab/projects/massasauga/WGS/processedReads/
-outdir=/mnt/research/FitzLab/projects/massasauga/WGS/alignments/
-scratchnode=/mnt/scratch/clarkm89/massasauga_alignments_temp # path to scratch dir where temp files will be stored
-logfilesdir=/mnt/research/FitzLab/projects/massasauga/WGS/logs/logs_${jobname} #name of directory to create and then write log files to
+# indir=/mnt/scratch/clarkm89/EMR_WGS/processedReads/ # defined in array_key
+outdir=/mnt/scratch/clarkm89/EMR_WGS/alignments/
+scratchnode=/mnt/scratch/clarkm89/EMR_WGS/alignmentsTemp/ # path to scratch dir where temp files will be stored
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/logs_${jobname} #name of directory to create and then write log files to
 
 #if input directory doesn't contain at least 1 .gz file; print warning, otherwise proceed with files that are there
 n_inputfiles=($(ls $indir/*.gz | wc -l))
 if [ $n_inputfiles = 0 ]
 	then echo WARNING - there are no .gz files in $indir, go investigate
 
-#check if logfiles directory has been created in submit dir yet; if not, make one
+#check if directories have been created; if not, make 
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
+if [ ! -d $outdir ]; then mkdir $outdir; fi
+if [ ! -d $scratchnode ]; then mkdir $scratchnode; fi
 
 
 # define slurm job details
 cpus=6 #number of CPUs to request/use per dataset
-ram_per_cpu=4G #amount of RAM to request/use per CPU CHANGE
+ram_per_cpu=8G #amount of RAM to request/use per CPU CHANGE
 array_no=$(cat $array_key | wc -l)
 
 # define executable and reference genome 
-executable=/mnt/research/FitzLab/projects/massasauga/WGS/scripts/align_to_genome.sbatch #script to run 
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/align_to_genome.sbatch #script to run 
 reference=/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta #filepath of reference file
 
 #---------------------------------------------------------
@@ -50,10 +52,10 @@ sbatch --job-name=$jobname \
 		--mem-per-cpu=$ram_per_cpu \
 		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
 		--error=$logfilesdir/${jobname}_${date}_%A-%a.err \
-		--time=48:00:00 \
+		--time=72:00:00 \
 		$executable
 		
-echo submitted a job to align forward read $forwardread and reverse read $reverseread from individual $sample_name to $reference
+echo submitted a job to align reads in $indir to $reference
 
 echo ----------------------------------------------------------------------------------------
 echo My executable is $executable		
