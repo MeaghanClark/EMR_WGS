@@ -20,7 +20,7 @@ IND_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2)
 
 # required variables: 
 
-CUTADAPT=/mnt/research/Fitz_Lab/software/cutadapt/bin/cutadapt
+#CUTADAPT=/mnt/research/Fitz_Lab/software/cutadapt/bin/cutadapt
 FORWARD_ADAPTER=AGATCGGAAGAGCACACGTCTGAACTCCAGTCA # truseq adapters, should double check these are correct
 REVERSE_ADAPTER=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
 REPORT=${IND_NAME}.fastp.html
