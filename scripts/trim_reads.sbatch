@@ -2,7 +2,7 @@
 
 # trim_reads.sbatch
 # This script runs fastp on raw sequencing data to trim adapters and polyG tails
-# Last updated 05/16/2024 by MI Clark, script format inspired by R Toczydlowski 
+# Last updated 06//16/2024 by MI Clark, script format inspired by R Toczydlowski 
 
 #--------------- EXECUTABLE ---------------
 
@@ -10,12 +10,12 @@ fastp --version # will work on ubuntu!
 
 
 # define read files using ARRAY_KEY
-read -r FORWARDREAD REVERSEREAD <<< $(awk -v row=${SLURM_ARRAY_TASK_ID} -F'	' 'NR=row{print $1 $2}' $ARRAY_KEY | tr -d '\r') # is -F tag correct? 
+line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
+IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
 
-FORWARDREAD=$((FORWARDREAD))
-REVERSEREAD=$((REVERSEREAD))
 
-IND_NAME=$(echo $FORWARDREAD | cut -d "_" -f 1,2) # ***CHANGE THIS LINE DEPENDING ON NAMING CONVENTION***
+BASE=$(basename "$FORWARDREAD")
+IND_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2)
 
 
 # required variables: 
@@ -38,8 +38,8 @@ REPORT=${IND_NAME}.fastp.html
 
 # trim polyG tails
 fastp \ 
-	-i ${INDIR}/${FORWARDREAD}
-	-I ${INDIR}/${REVERSEREAD}
+	-i ${FORWARDREAD}
+	-I ${REVERSEREAD}
 	-o trim.${OUTDIR}/${FORWARDREAD}
 	-O trim.${OUTDIR}/${REVERSEREAD}
 	--adapter_sequence $FORWARD_ADAPTER
