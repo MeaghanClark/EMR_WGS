@@ -37,16 +37,15 @@ REPORT=${IND_NAME}.fastp.html
 # wait
 
 # trim polyG tails
-fastp \ 
-	-i ${FORWARDREAD}
-	-I ${REVERSEREAD}
-	-o trim.${OUTDIR}/${FORWARDREAD}
-	-O trim.${OUTDIR}/${REVERSEREAD}
-	--adapter_sequence $FORWARD_ADAPTER
-	--adapter_sequence_r2 $REVERSE_ADAPTER
-	-g 
-	--poly_g_min_len 10
-	-h=${REPORT}
+fastp -i ${FORWARDREAD} \
+	-I ${REVERSEREAD} \
+	-o ${OUTDIR}/trim.${BASE}_1.fastq.gz \
+	-O ${OUTDIR}/trim.${BASE}_2.fastq.gz \
+	--adapter_sequence $FORWARD_ADAPTER \
+	--adapter_sequence_r2 $REVERSE_ADAPTER \
+	-g \
+	--poly_g_min_len 10 \
+	--html=${REPORT}
 
 wait
 
