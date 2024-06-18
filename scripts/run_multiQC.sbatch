@@ -12,8 +12,12 @@ module load MultiQC/1.14-foss-2022b
 module list
 
 # required variables: 
-INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawReadsQC
-OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawReadsQC
+# for FASTQC: 
+#INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawReadsQC
+#OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawReadsQC
+# for fastp
+INDIR=/mnt/scratch/clarkm89/EMR_WGS/processedReads/
+OUTDIR=/mnt/scratch/clarkm89/EMR_WGS/processedReads/
 
 # run multiQC
 
