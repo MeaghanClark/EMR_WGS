@@ -10,7 +10,7 @@
 
 # define high level variables
 jobname=trim_reads
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_FRcols.txt # list of raw data with forward and reverse reads for the same individual on the same line
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_FRcols_ELF_355.txt # list of raw data with forward and reverse reads for the same individual on the same line
 rundate=$(date +%m%d%Y)
 
 # define directories
@@ -37,7 +37,7 @@ sbatch --job-name=$jobname \
 	--mem-per-cpu=$ram_per_cpu \
 	--output=$logfilesdir/${jobname}_${rundate}_%A-%a.out \
 	--error=$logfilesdir/${jobname}_${rundate}_%A-%a.err \
-	--time=24:00:00 \
+	--time=4:00:00 \
 	$executable
 
 echo ----------------------------------------------------------------------------------------
