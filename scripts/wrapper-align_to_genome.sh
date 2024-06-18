@@ -7,7 +7,7 @@
 # define high level variables
 date=$(date +%m%d%Y)
 jobname=align_to_genome #label for SLURM book-keeping 
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_ELF_335.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
 
 #define dirs:
 indir=/mnt/scratch/clarkm89/EMR_WGS/processedReads/ # defined in array_key
