@@ -10,7 +10,7 @@ jobname=align_to_genome #label for SLURM book-keeping
 array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
 
 #define dirs:
-# indir=/mnt/scratch/clarkm89/EMR_WGS/processedReads/ # defined in array_key
+indir=/mnt/scratch/clarkm89/EMR_WGS/processedReads/ # defined in array_key
 outdir=/mnt/scratch/clarkm89/EMR_WGS/alignments/
 scratchnode=/mnt/scratch/clarkm89/EMR_WGS/alignmentsTemp/ # path to scratch dir where temp files will be stored
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/logs_${jobname} #name of directory to create and then write log files to
@@ -19,6 +19,7 @@ logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/logs_${jobna
 n_inputfiles=($(ls $indir/*.gz | wc -l))
 if [ $n_inputfiles = 0 ]
 	then echo WARNING - there are no .gz files in $indir, go investigate
+fi
 
 #check if directories have been created; if not, make 
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
