@@ -3,7 +3,7 @@
 # align_to_genome.sbatch
 # This script uses bwa mem to aligned trimmed and QC-checked reads to a reference genome. 
 # resulting sam files are converted to bam, then indexed, sorted, duplicates are removed, and read pair overlap trimmed
-# Last updated 06/03/2024 by MI Clark, originally written by MI Clark and R Toczydlowski based on script by B Reid
+# Last updated 06/18/2024 by MI Clark, originally written by MI Clark and R Toczydlowski based on script by B Reid
 
 #--------------- EXECUTABLE ---------------
 
@@ -24,25 +24,23 @@ module list
 # 	REFERENCE
 # 	CPUS
 #	OUTDIR
-#	INDIR
 #	SCRATCHNODE
 
 
 # define read files using ARRAY_KEY
-read -r FORWARDREAD REVERSEREAD <<< $(awk -v row=${SLURM_ARRAY_TASK_ID} -F'	' 'NR=row{print $1 $2}' $ARRAY_KEY | tr -d '/r') # is -F tag correct? 
+line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
+IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
 
-FORWARDREAD=$((FORWARDREAD))
-REVERSEREAD=$((REVERSEREAD))
-
-SAMPLE_NAME=$(echo $FORWARDREAD | cut -d "_" -f 1,2) # ***CHANGE THIS LINE DEPENDING ON NAMING CONVENTION***
+BASE=$(basename "$FORWARDREAD")
+SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
 
 # text for troubleshooting
 echo using $REFERENCE 
-echo trying to locate files ${INDIR}/$FORWARDREAD and ${INDIR}/$REVERSEREAD
+echo trying to locate files $FORWARDREAD and $REVERSEREAD
 echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
 
 #run bwa 
-bwa mem -t $CPUS $REFERENCE ${INDIR}/$FORWARDREAD ${INDIR}/$REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
+bwa mem -t $CPUS $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
  
 echo I have created a .sam file for $SAMPLE_NAME and put it in $SCRATCHNODE
 
@@ -67,6 +65,7 @@ echo I have removed duplicates and saved as ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.
 
 echo I am all done with using bwa and samtools to align $FORWARDREAD and $REVERSEREAD to $REFERENCE
 
+wait 
 
 # trim overlap
 bam clipOverlap --in ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam --out ${OUTDIR}/${SAMPLE_NAME}.trim.bam 
