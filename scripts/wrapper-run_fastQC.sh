@@ -11,11 +11,12 @@
 
 # define high level variables
 jobname=run_fastQC
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
+#array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_list.txt 
 rundate=$(date +%m%d%Y)
 
 # define directories
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawReadsQC
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/trimReadsQC
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/fastQC
  
 # make sure dir exists
@@ -24,7 +25,7 @@ if [ ! -d $outdir ]; then mkdir $outdir; fi
 
 # define slurm job details
 cpus=1
-ram_per_cpu=24G
+ram_per_cpu=4G
 array_no=$(cat $array_key | wc -l)
 
 # define executable 
@@ -38,7 +39,7 @@ sbatch --job-name=$jobname \
 	--mem-per-cpu=$ram_per_cpu \
 	--output=$logfilesdir/${jobname}_${rundate}_%A-%a.out \
 	--error=$logfilesdir/${jobname}_${rundate}_%A-%a.err \
-	--time=24:00:00 \
+	--time=4:00:00 \
 	$executable
 
 echo ----------------------------------------------------------------------------------------

@@ -48,6 +48,9 @@ echo I have created a .sam file for $SAMPLE_NAME and put it in $SCRATCHNODE
 samtools view -Sb -o ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam #change sam to bam
 echo I have converted the .sam file to a .bam file and saved it in ${SCRATCHNODE}
 
+# delete sam file
+rm ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+
 samtools sort -n -o ${SCRATCHNODE}/${SAMPLE_NAME}.sort.bam ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam #sort by readname
 echo I have sorted the .bam file and saved it as ${SCRATCHNODE}/${SAMPLE_NAME}.sort.bam
 
@@ -66,6 +69,12 @@ echo I have removed duplicates and saved as ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.
 echo I am all done with using bwa and samtools to align $FORWARDREAD and $REVERSEREAD to $REFERENCE
 
 wait 
+
+# delete intermediate files 
+rm ${SCRATCHNODE}/${SAMPLE_NAME}.sort.bam
+rm ${SCRATCHNODE}/${SAMPLE_NAME}.sort.filt.bam
+rm ${SCRATCHNODE}/${SAMPLE_NAME}.positionsort.bam
+echo I have deleted some of the intermediate files
 
 # trim overlap
 bam clipOverlap --in ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam --out ${OUTDIR}/${SAMPLE_NAME}.trim.bam 
