@@ -2,18 +2,21 @@
 
 # wrapper-align_to_genome.sh		
 # This script starts an array job to align trimmed sequencing reads output by trim_reads.sbatch to a reference genome
-# Last updated 06/03/2024 by MI Clark, originally written by R Toczydlowski 
+# Last updated 06/20/2024 by MI Clark, originally written by R Toczydlowski 
 
 # define high level variables
 date=$(date +%m%d%Y)
 jobname=align_to_genome #label for SLURM book-keeping 
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_ELF_335.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_GOU_1.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
+	# trimmed_reads excludes ELF_335 because that individual has two associated sequencing pairs
+	# align ELF_335 using array_key trimmed_reads_ELF_335
+	# trimmed_reads_missing.txt includes ELF_335 (after silly error in key above) and the 8 jobs that failed to load required modules from big job
 
 #define dirs:
 indir=/mnt/scratch/clarkm89/EMR_WGS/processedReads/ # defined in array_key
 outdir=/mnt/scratch/clarkm89/EMR_WGS/alignments/
 scratchnode=/mnt/scratch/clarkm89/EMR_WGS/alignmentsTemp/ # path to scratch dir where temp files will be stored
-logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/logs_${jobname} #name of directory to create and then write log files to
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}_redo #name of directory to create and then write log files to
 
 #if input directory doesn't contain at least 1 .gz file; print warning, otherwise proceed with files that are there
 n_inputfiles=($(ls $indir/*.gz | wc -l))
@@ -28,8 +31,8 @@ if [ ! -d $scratchnode ]; then mkdir $scratchnode; fi
 
 
 # define slurm job details
-cpus=6 #number of CPUs to request/use per dataset
-ram_per_cpu=8G #amount of RAM to request/use per CPU CHANGE
+cpus=3 #number of CPUs to request/use per dataset
+ram_per_cpu=2G #amount of RAM to request/use per CPU CHANGE
 array_no=$(cat $array_key | wc -l)
 
 # define executable and reference genome 
@@ -54,6 +57,7 @@ sbatch --job-name=$jobname \
 		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
 		--error=$logfilesdir/${jobname}_${date}_%A-%a.err \
 		--time=72:00:00 \
+		--account=bradburd \
 		$executable
 		
 echo submitted a job to align reads in $indir to $reference
