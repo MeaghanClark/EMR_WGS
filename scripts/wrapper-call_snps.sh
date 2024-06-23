@@ -2,7 +2,7 @@
 		
 # wrapper-call_snps.sh		
 # This script starts an array job to call SNPs on different chromosomes specified by files in "chrom_list_dir"
-# Last updated 05/29/2024 by MI Clark, originally written by R Toczydlowski 
+# Last updated 06/22/2024 by MI Clark, originally written by R Toczydlowski 
 
 #  run from project directory (where you want output directory to be created)
 
@@ -14,7 +14,7 @@ jobname=call_snps #label for SLURM book-keeping
 logfilesdir=/mnt/research/FitzLab/projects/massasauga/WGS/logs/logs_${jobname}
 indir=/mnt/research/Fitz_Lab/ref/massasauga/alignments/ 
 outdir=/mnt/research/Fitz_Lab/ref/massasauga/variants/
-chrom_list_dir=/mnt/research/Fitz_Lab/ref/massasauga/scripts/keys/chrom
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom
 
 # define slurm job details
 cpus=1 #number of CPUs to request/use per dataset 
@@ -24,7 +24,7 @@ array_no=$(ls $chrom_list_dir | wc -l) #***
 # define executable and reference genome 
 executable=/mnt/research/Fitz_Lab/ref/massasauga/scripts/call_snps.sbatch #script to run 
 reference=/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta #filepath of reference file
-list_of_bamfiles=/mnt/research/Fitz_Lab/ref/massasauga/scripts/bamlist.txt #list with paths to bam files we want to call SNPs for
+list_of_bamfiles=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bam_list.txt #list with paths to bam files we want to call SNPs for
 
 #---------------------------------------------------------
 	
@@ -50,6 +50,7 @@ sbatch --job-name=$jobname \
 		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
 		--error=$logfilesdir/${jobname}_${date}_%A-%a.err \
 		--time=72:00:00 \
+		--account=bradburd \
 		$executable
 			
 echo I submitted to call SNPs woohoo!

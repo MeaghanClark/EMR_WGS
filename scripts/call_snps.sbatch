@@ -3,7 +3,7 @@
 #--------------- EXECUTABLE ---------------
 
 # This script calls snps
-# Last updated 03/01/2023 by MI Clark, based on script by R Toczydlowski. Shout out to T Linderoth for helping establish reasonable SNP calling parameters
+# Last updated 06/22/2024 by MI Clark, based on script by R Toczydlowski. Shout out to T Linderoth for helping establish reasonable SNP calling parameters
 # Input: Reference genome path, bam file, input directory, output directory from wrapper-call_snps.sh 
 #
 # Output: ${OUTDIR}/${SAMPLE_NAME}.bcf  file, stored in directory at <storagenode>/<run_name>/called_snps
@@ -11,18 +11,14 @@
 
 echo we are starting calling snps!
 
-#load programs we want to use
+#load programs we want to use, updated to ubuntu
 module purge
 module load powertools
-module load GCC/10.2.0
-module load GSL/2.6
+module load BCFtools/1.19-GCC-13.2.0
 module list 
  
 bcftools --version
 
-# text for troubleshooting
-echo using $REFERENCE 
-echo I will put the output in ${OUTDIR}/${VCF_NAME}.bcf 
 
 # Required import variables from wrapper
 #	(1) reference
@@ -33,6 +29,15 @@ echo I will put the output in ${OUTDIR}/${VCF_NAME}.bcf
 CHROMLIST="${CHROM_LIST_DIR}/chrom_list_${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes
 BCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}
 
+
+# text for troubleshooting
+echo using $REFERENCE 
+echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf 
+
+# make sure .bam files are indexed! 
+# while read -r bam_file; do
+#     samtools index "$bam_file"
+# done < /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bam_list.txt
 
 # parameter recs from T Linderoth
  bcftools mpileup \
