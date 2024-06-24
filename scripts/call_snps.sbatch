@@ -43,7 +43,7 @@ echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf
  bcftools mpileup \
  -f $REFERENCE \
  -b $LIST_OF_BAMFILES \
- -R $CHROMLIST \ # list of chromosomes to call SNPs on
+ -R $CHROMLIST \
  -C 0 \
  -d 10000 \
  -L 10000 \
