@@ -11,9 +11,9 @@ date=$(date +%m%d%Y)
 jobname=call_snps #label for SLURM book-keeping 
 
 #define dirs:
-logfilesdir=/mnt/research/FitzLab/projects/massasauga/WGS/logs/logs_${jobname}
-indir=/mnt/research/Fitz_Lab/ref/massasauga/alignments/ 
-outdir=/mnt/research/Fitz_Lab/ref/massasauga/variants/
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
+indir=/mnt/scratch/clarkm89/EMR_WGS/alignments/ 
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/
 chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom
 
 # define slurm job details
@@ -22,7 +22,7 @@ ram_per_cpu=2G #amount of RAM to request/use per CPU
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable and reference genome 
-executable=/mnt/research/Fitz_Lab/ref/massasauga/scripts/call_snps.sbatch #script to run 
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/call_snps.sbatch #script to run 
 reference=/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta #filepath of reference file
 list_of_bamfiles=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bam_list.txt #list with paths to bam files we want to call SNPs for
 
@@ -55,5 +55,4 @@ sbatch --job-name=$jobname \
 			
 echo I submitted to call SNPs woohoo!
 echo ----------------------------------------------------------------------------------------
-fi		
 
