@@ -56,19 +56,19 @@ echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf
  | bcftools call \
  -a PV4,GQ,GP \
  -m \
- -P 0.003 \
+ -P 0.002 \
  -O u \
  | bcftools +fill-tags \
  -O b \
  -o ${OUTDIR}/${BCF_NAME}.bcf.gz \
--- -t 'AF,ExcHet,NS'
+ -- -t 'AF,ExcHet,NS'
  
 echo I have called SNPs using $LIST_OF_BAMFILES and $REFERENCE
 echo I have also output a bcf file and saved it here: ${OUTDIR}/${BCF_NAME}.bcf
 
 wait
 
-tabix -p bcf $OUTBCF
+tabix -p bcf ${OUTDIR}/${BCF_NAME}.bcf.gz
 
 #print some environment variables to stdout for records
 echo ----------------------------------------------------------------------------------------

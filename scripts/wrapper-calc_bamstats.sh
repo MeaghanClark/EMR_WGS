@@ -9,11 +9,11 @@
 
 # define high level vars
 date=$(date +%m%d%Y)
-jobname=bam_stats
+jobname=bamstats
 
 # define dirs
 chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom
-logfilesdir=/mnt/research/FitzLab/projects/massasauga/WGS/logs/${jobname}
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
 outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats
 
 # define input and output files
@@ -26,15 +26,16 @@ array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable, reference and needed scripts
 reference=/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta
-executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/calc_bam_stats.sbatch
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/calc_bamstats.sbatch
 bamstats=/mnt/research/Fitz_Lab/software/ngsQC/bamstats/bamstats
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
+if [ ! -d $outdir ]; then mkdir $outdir; fi
 
 sbatch --job-name=$jobname \
 --array=1-$array_no \
---export=REFERENCE=$reference,CPUS=$cpus,BAMSTATS=$bamstats,INBAM=$inbam,LOGFILESDIR=$logfilesdir,DATE=$date,CHROM_LIST_DIR=$chrom_list_dir \
+--export=REFERENCE=$reference,OUTDIR=$outdir,CPUS=$cpus,BAMSTATS=$bamstats,INBAM=$inbam,LOGFILESDIR=$logfilesdir,DATE=$date,CHROM_LIST_DIR=$chrom_list_dir \
 --cpus-per-task=$cpus \
 --mem-per-cpu=$ram_per_cpu \
 --output=$logfilesdir/${jobname}_%A-%a.out \
