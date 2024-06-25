@@ -3,7 +3,7 @@
 # wrapper-normalize_variants.sh		
 # This script starts an array job normalize variants in raw bcf files
 # The array job will start one job per BCF in bcflist
-# Last updated 06/6/2024 by MI Clark, script format inspired by R Toczydlowski 
+# Last updated 06/24/2024 by MI Clark, script format inspired by R Toczydlowski 
 
 #  run from project directory (where you want output directory to be created)
 
@@ -13,10 +13,10 @@ jobname=bcf_norm
 date=$(date +%m%d%Y)
 
 #define dirs:
-logfilesdir=/mnt/research/FitzLab/projects/massasauga/WGS/logs/logs_${jobname} #
-chrom_list_dir=/mnt/research/Fitz_Lab/ref/massasauga/scripts/keys/chrom # ***need to make chrom files
-indir=/mnt/research/FitzLab/projects/massasauga/WGS/variants
-outdir=/mnt/research/FitzLab/projects/massasauga/WGS/variants/
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname} 
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom 
+indir=/mnt/research/FitzLab/projects/massasauga/EMR_WGS/variants
+outdir=/mnt/research/FitzLab/projects/massasauga/EMR_WGS/variants/
 
 # define slurm job details
 cpus=4

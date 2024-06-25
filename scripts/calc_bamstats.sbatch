@@ -11,10 +11,12 @@
 #load programs we want to use, updated to ubuntu
 module purge
 module load powertools
-module load BCFtools/1.19-GCC-13.2.0
+module load BCFtools/1.18-GCC-12.3.0
+module load SAMtools/1.18-GCC-12.3.0 # CHECK
 module list 
 
 bcftools --version
+samtools --version
 
 # define array vars
 CHROMLIST="${CHROM_LIST_DIR}/chrom_list_${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes
