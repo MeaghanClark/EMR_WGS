@@ -8,10 +8,8 @@ if (length(args) < 1) {
 }
 
 flist <- as.character(read.table(args[1], head=FALSE)$V1) 
-# outname <- args[2] 
-outname_sum <- "/Users/meaghan/Desktop/EMR_WGS/script_test.txt" # DELETE
-#outfile <- args[3]
-outname_hist <- "/Users/meaghan/Desktop/EMR_WGS/hist_test_qual.pdf" # DELETE
+outname_sum <- args[2] 
+outfile_hist <- args[3]
 subidx <- NULL
 if (length(args) > 1) subidx = as.numeric(args[4:length(args)])
 

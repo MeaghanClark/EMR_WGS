@@ -6,31 +6,29 @@
 #SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
 #SBATCH --mem-per-cpu=12G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=merge_bcf    # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/home/clarkm89/EMR_WGS/log_bamstats_hists/annotations_hist_%A.out" # CHANGE
-#SBATCH --error="/mnt/home/clarkm89/EMR_WGS/log_bamstats_hists/annotations_hist_%A.err" # CHANGE
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_bcf_%A.out"
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_bcf_%A.err"
+#SBATCH --account=bradburd
 
 ##########
 
 # This script merges bcf files into a single file
-# Last updated 05/22/2024 by MI Clark, based on script by T Linderoth
+# Last updated 06/24/2024 by MI Clark, based on script by T Linderoth
 
-#load programs we want to use
+#load programs we want to use, updated for ubuntu
 module purge
 module load powertools
-module load GCC/10.2.0
-module load GSL/2.6
+module load BCFtools/1.19-GCC-13.2.0
 module list 
 
 bcftools --version
 
 # define variables
-INDIR='/path/to/bcf/files/from/norm_vcf'
-INFILE1='file1.bcf.gz' 
-INFILE2='file1.bcf.gz'
-# and so on for length(chrom_list)
-OUTFILE='/mnt/gs21/scratch/lindero1/posk/mask/mi_posk_all_qc.bam' # change to where output should go
+INDIR='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants'
+BCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_chrom_list.txt' # list with full file paths to bcf files to merge
+OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_norm_fullgen.bcf' 
 
-CMD="bcftools concat -o $OUTFILE -Ob $INFILE1 $INFILE2"
+CMD="bcftools concat -o $OUTFILE -Ob --file-list ${BCF_LIST}"
 
 # run command 
 
@@ -40,5 +38,11 @@ eval $CMD
 
 wait
 
+#print some environment variables to stdout for records
+echo ----------------------------------------------------------------------------------------
+echo PRINTING SUBSET OF ENVIRONMENT VARIABLES:
+(set -o posix ; set | grep -v ^_ | grep -v ^EB | grep -v ^BASH | grep -v PATH | grep -v LS_COLORS)
+
+echo ----------------------------------------------------------------------------------------
 
 

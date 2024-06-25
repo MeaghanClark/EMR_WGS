@@ -51,7 +51,7 @@ split_genome <- function(genome_df, num_segments = 50) {
   # Loop through each segment
   for (i in 1:num_segments) {
     # Initialize segment dataframe
-    segment_df <- data.frame(CHROM = character(), BEG = integer(), END = integer())
+    segment_df <- data.frame(chrom = character(), beg = integer(), end = integer())
     segment_df_index <- 1
     
     # Calculate segment boundaries
@@ -67,12 +67,16 @@ split_genome <- function(genome_df, num_segments = 50) {
       
       # Check if the chromosome overlaps with the current segment
       if (chrom_start <= segment_end && order >= segment_start) {
-        # Calculate the start and end positions of the overlap
-        overlap_start <- max(segment_start, chrom_start)
-        overlap_end <- min(segment_end, order)
+        # Calculate the start and end positions of the overlap in genome coordinates
+        overlap_start_genome <- max(segment_start, chrom_start)
+        overlap_end_genome <- min(segment_end, order)
+        
+        # Calculate the start and end positions within the chromosome
+        overlap_start_chrom <- overlap_start_genome - chrom_start + 1
+        overlap_end_chrom <- overlap_end_genome - chrom_start + 1
         
         # Add the overlap to the segment dataframe
-        segment_df[segment_df_index, ] <- c(chrom_name, as.integer(overlap_start), as.integer(overlap_end))
+        segment_df[segment_df_index, ] <- c(chrom_name, as.integer(overlap_start_chrom), as.integer(overlap_end_chrom))
         segment_df_index <- segment_df_index + 1
       }
     }
@@ -87,18 +91,20 @@ split_genome <- function(genome_df, num_segments = 50) {
   return(segments)
 }
 
+
 # Example usage:
 # Assuming your dataframe is named 'genome_df'
 # Call the function to split the genome into segments
 genome_segments <- split_genome(data)
 
-# Now genome_segments is a list where each entry contains a dataframe with chromosome name,
-# starting and ending base pairs for that chromosome segment that make up the genome segment.
-
 
 # export each dataframe in genome_segments as a separate .txt file, labelled 1 through 50 "chrom_list_${ARRAY_NO}.txt"
 
 for(i in 1:length(genome_segments)){
-  write.table(genome_segments[[i]], file = paste0("../scripts/keys/chrom/chrom_list_", i, ".txt"), row.names = FALSE, sep = "\t")
+  write.table(genome_segments[[i]], file = paste0("../scripts/keys/chrom/chrom_list_", i, ".txt"), 
+              row.names = FALSE, sep = "\t", 
+              col.names = FALSE, 
+              quote = FALSE, 
+              fileEncoding="UTF-8")
 }
 
