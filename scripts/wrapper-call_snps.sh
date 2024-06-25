@@ -13,12 +13,12 @@ jobname=call_snps #label for SLURM book-keeping
 #define dirs:
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
 indir=/mnt/scratch/clarkm89/EMR_WGS/alignments/ 
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants
 chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom
 
 # define slurm job details
 cpus=1 #number of CPUs to request/use per dataset 
-ram_per_cpu=2G #amount of RAM to request/use per CPU
+ram_per_cpu=12G #amount of RAM to request/use per CPU
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable and reference genome 
