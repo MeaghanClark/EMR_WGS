@@ -18,7 +18,7 @@ chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/c
 
 # define slurm job details
 cpus=1 #number of CPUs to request/use per dataset 
-ram_per_cpu=12G #amount of RAM to request/use per CPU
+ram_per_cpu=24G #amount of RAM to request/use per CPU
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable and reference genome 

@@ -12,7 +12,7 @@ date=$(date +%m%d%Y)
 jobname=bamstats
 
 # define dirs
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
 outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats
 
