@@ -10,11 +10,11 @@
 
 # define high level variables
 jobname=trim_reads
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_FRcols_ELF_355.txt # list of raw data with forward and reverse reads for the same individual on the same line
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_FRcols_Ster.txt # list of raw data with forward and reverse reads for the same individual on the same line
 rundate=$(date +%m%d%Y)
 
 # define directories
-outdir=/mnt/scratch/clarkm89/EMR_WGS/processedReads/  # outdir on scratch because of storage limits
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/processedReads/  # outdir on scratch because of storage limits
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/trimReads
  
 # make sure dir exists
@@ -38,6 +38,7 @@ sbatch --job-name=$jobname \
 	--output=$logfilesdir/${jobname}_${rundate}_%A-%a.out \
 	--error=$logfilesdir/${jobname}_${rundate}_%A-%a.err \
 	--time=4:00:00 \
+	--account=bradburd \
 	$executable
 
 echo ----------------------------------------------------------------------------------------
