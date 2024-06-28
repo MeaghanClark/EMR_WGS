@@ -250,7 +250,7 @@ CODE:
 ##########################################################################################
 
 # something like: 
-bcftools reheader -s $NEWNAMES --threads 24 -o $OUTBCF $OUTBCF_TMP
+bcftools reheader --samples $NEWNAMES -o $OUTBCF $OUTBCF_TMP
 
 ##########################################################################################
 OUTPUT: .bcf with properly named samples

@@ -23,7 +23,7 @@ colnames(data) <- c("chrom_name", "chrom_len")
 
 total_length <- sum(data$chrom_len)
 
-no_chunks <- 50 # define number of chunks to break the genome into 
+no_chunks <- 200 # define number of chunks to break the genome into 
 chunk_length <- round(total_length / no_chunks)
 
 # create order column
@@ -36,7 +36,7 @@ data$chrom_start <- c(1, data$order + 1)[1:nrow(data)]
 data <- data[,c("chrom_name", "chrom_len", "chrom_start", "order")]
 
 # Function to split the genome into segments
-split_genome <- function(genome_df, num_segments = 50) {
+split_genome <- function(genome_df, num_segments = no_chunks) {
   
   # Calculate the total length of the genome
   total_genome_length <- sum(genome_df$chrom_len)
@@ -101,7 +101,7 @@ genome_segments <- split_genome(data)
 # export each dataframe in genome_segments as a separate .txt file, labelled 1 through 50 "chrom_list_${ARRAY_NO}.txt"
 
 for(i in 1:length(genome_segments)){
-  write.table(genome_segments[[i]], file = paste0("../scripts/keys/chrom/chrom_list_", i, ".txt"), 
+  write.table(genome_segments[[i]], file = paste0("../scripts/keys/chrom_200/chrom_list_", i, ".txt"), 
               row.names = FALSE, sep = "\t", 
               col.names = FALSE, 
               quote = FALSE, 
