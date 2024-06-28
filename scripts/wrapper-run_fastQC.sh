@@ -13,10 +13,11 @@
 jobname=run_fastQC
 #array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
 array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_list.txt 
+#array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_list_Ster.txt
 rundate=$(date +%m%d%Y)
 
 # define directories
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/trimReadsQC
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/trimReadsQC # change if using trimmed reads! 
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/fastQC
  
 # make sure dir exists
@@ -40,6 +41,7 @@ sbatch --job-name=$jobname \
 	--output=$logfilesdir/${jobname}_${rundate}_%A-%a.out \
 	--error=$logfilesdir/${jobname}_${rundate}_%A-%a.err \
 	--time=4:00:00 \
+	--account=bradburd \
 	$executable
 
 echo ----------------------------------------------------------------------------------------
