@@ -24,6 +24,9 @@ module list
 
 bcftools --version
 
+
+
+
 BCFLIST=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawBCF_list.txt
 INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/rawBCF
 OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/dropBCF
@@ -34,7 +37,7 @@ while read -r bcf_file; do
 	BCF_NAME=$(echo "${bcf_file}" | cut -d "." -f 1)
 
 	# drop individuals and resave 
-	bcftools view -s ^KBPP_sca0242,KBPP_sca0144,KBPP_sca0180,ROME_sca0713,ROME_sca1395,SSSP_sca0979 \
+	bcftools view -s ^/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0242.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0144.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0180.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/ROME_sca0713.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/ROME_sca1395.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/SSSP_sca0979.trim.bam \
 	-o ${OUTDIR}/${BCF_NAME}_drop \
 	-O b \
 	${INDIR}/${bcf_file}
