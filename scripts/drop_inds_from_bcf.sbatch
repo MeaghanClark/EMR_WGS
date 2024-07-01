@@ -1,19 +1,7 @@
 #!/bin/bash
 
-########## SBATCH Lines for Resource Request ##########
-
-#SBATCH --time=24:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=12G            # memory required per allocated CPU (or core)
-#SBATCH --job-name=drop_inds    # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/drop_inds/drop_%A.out"
-#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/drop_inds/drop_%A.err"
-#SBATCH --account=bradburd
-
-##########
-
 # This script drops individuals using the bcftools -s tag 
-# Last updated 06/28/2024 by MI Clark
+# Last updated 07/01/2024 by MI Clark
 
 #load programs we want to use, updated for ubuntu
 
@@ -24,28 +12,28 @@ module list
 
 bcftools --version
 
+echo ${BCFLIST}
+
+BCF_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$BCFLIST")
 
 
+# isolate bcf name
+BCF_NAME=$(echo "${BCF_FILE}" | cut -d "." -f 1)
 
-BCFLIST=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawBCF_list.txt
-INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/rawBCF
-OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/dropBCF
+# drop individuals and resave 
+bcftools view -s ^/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0242.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0144.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0180.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/ROME_sca0713.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/ROME_sca1395.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/SSSP_sca0979.trim.bam \
+-o ${OUTDIR}/${BCF_NAME}_drop.bcf.gz \
+-O b \
+${INDIR}/${BCF_FILE}
 
-while read -r bcf_file; do
+echo done dropping individuals...
 
-	# isolate bcf name
-	BCF_NAME=$(echo "${bcf_file}" | cut -d "." -f 1)
+# index bcf files 
+tabix -p bcf ${OUTDIR}/${BCF_NAME}_drop.bcf.gz
 
-	# drop individuals and resave 
-	bcftools view -s ^/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0242.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0144.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0180.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/ROME_sca0713.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/ROME_sca1395.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/SSSP_sca0979.trim.bam \
-	-o ${OUTDIR}/${BCF_NAME}_drop.bcf.gz \
-	-O b \
-	${INDIR}/${bcf_file}
-	
-	# index bcf files 
-	tabix -p bcf ${OUTDIR}/${BCF_NAME}_drop.bcf.gz
+wait 
 
-done < $BCFLIST
+echo done indexing... 
 
 #print some environment variables to stdout for records
 echo ----------------------------------------------------------------------------------------
