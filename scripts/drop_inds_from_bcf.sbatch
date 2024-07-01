@@ -38,7 +38,7 @@ while read -r bcf_file; do
 
 	# drop individuals and resave 
 	bcftools view -s ^/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0242.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0144.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/KBPP_sca0180.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/ROME_sca0713.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/ROME_sca1395.trim.bam,/mnt/scratch/clarkm89/EMR_WGS/alignments/SSSP_sca0979.trim.bam \
-	-o ${OUTDIR}/${BCF_NAME}_drop \
+	-o ${OUTDIR}/${BCF_NAME}_drop.bcf.gz \
 	-O b \
 	${INDIR}/${bcf_file}
 	
