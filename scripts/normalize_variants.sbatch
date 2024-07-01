@@ -18,12 +18,11 @@ bcftools --version
 
 # Required import variables from wrapper
 #	(1) reference
-#	(2) list of bcf files
 #	(3) OUTDIR
 
 # path to a file that contains the list of chromosomes for this array job no. 
-INBCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}_drop
-OUTBCF_NAME=EMR_WGS_norm_${SLURM_ARRAY_TASK_ID}
+INBCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}_drop.bcf.gz
+OUTBCF_NAME=EMR_WGS_norm_${SLURM_ARRAY_TASK_ID}.bcf.gz
 
 ### Normalize variants
 
