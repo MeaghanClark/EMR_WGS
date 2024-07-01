@@ -3,7 +3,7 @@
 #--------------- EXECUTABLE ---------------
 
 # This script runs bcftools norm on a zipped bcf file
-# Last updated 06/24/2023 by MI Clark,based on script by T Linderoth
+# Last updated 07/01/2023 by MI Clark,based on script by T Linderoth
 # Input: Reference genome with path, zipped bcf file
 #
 # Output: normalized zipped bcf file 
@@ -22,7 +22,7 @@ bcftools --version
 #	(3) OUTDIR
 
 # path to a file that contains the list of chromosomes for this array job no. 
-INBCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}
+INBCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}_drop
 OUTBCF_NAME=EMR_WGS_norm_${SLURM_ARRAY_TASK_ID}
 
 ### Normalize variants
