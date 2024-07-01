@@ -2,9 +2,9 @@
 
 ########## SBATCH Lines for Resource Request ##########
 
-#SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --time=24:00:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=12G            # memory required per allocated CPU (or core)
+#SBATCH --mem-per-cpu=24G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=merge_bcf    # you can give your job a name for easier identification (same as -J)
 #SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_bcf_%A.out"
 #SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_bcf_%A.err"
@@ -24,9 +24,8 @@ module list
 bcftools --version
 
 # define variables
-INDIR='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants'
 BCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_chrom_list.txt' # list with full file paths to bcf files to merge
-OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_norm_fullgen.bcf' 
+OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_norm.bcf' 
 
 CMD="bcftools concat -o $OUTFILE -Ob --file-list ${BCF_LIST}"
 
