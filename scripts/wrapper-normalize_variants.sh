@@ -15,17 +15,17 @@ date=$(date +%m%d%Y)
 #define dirs:
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname} 
 chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom 
-indir=/mnt/research/FitzLab/projects/massasauga/EMR_WGS/variants/dropBCF
-outdir=/mnt/research/FitzLab/projects/massasauga/EMR_WGS/variants/normBCF
+indir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/dropBCF
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/normBCF
 
 # define slurm job details
 cpus=4
-total_mem=48
+total_mem=48G
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable and reference files
 reference=/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta 
-executable=/mnt/research/Fitz_Lab/ref/massasauga/scripts/normalize_variants.sbatch
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/normalize_variants.sbatch
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
