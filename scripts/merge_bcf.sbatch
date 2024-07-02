@@ -25,9 +25,10 @@ bcftools --version
 
 # define variables
 BCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_chrom_list.txt' # list with full file paths to bcf files to merge
-OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_norm.bcf' 
+OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop.bcf.gz' 
 
-CMD="bcftools concat -o $OUTFILE -Ob --file-list ${BCF_LIST}"
+# -a allows for duplicated sites (which might have happened due to upstream errors?) and -d removes duplicated lines in the bcf files being merged
+CMD="bcftools concat -n -o $OUTFILE -Ob --file-list ${BCF_LIST}"
 
 # run command 
 
