@@ -23,7 +23,7 @@ for (infile in flist) {
 	df <- rbind(df, read.table(infile, head=TRUE, na.strings=".", colClasses=classes))
 }
 
-df <- read.table("/Users/meaghan/Desktop/EMR_WGS/bamstats_test.txt", head=TRUE, na.strings=".", colClasses=classes) # DELETE
+#df <- read.table("/Users/meaghan/Desktop/EMR_WGS/bamstats_test.txt", head=TRUE, na.strings=".", colClasses=classes) # DELETE
 
 df.stats <- data.frame(stat=colnames(df))
 df.stats$mean = sapply(1:ncol(df),function(x,val){mean(as.numeric(val[,x]), na.rm=TRUE)}, val=df)

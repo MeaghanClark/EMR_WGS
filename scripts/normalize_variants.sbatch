@@ -21,9 +21,10 @@ bcftools --version
 #	(3) OUTDIR
 
 # path to a file that contains the list of chromosomes for this array job no. 
-INBCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}_drop.bcf.gz
-OUTBCF_NAME=EMR_WGS_norm_${SLURM_ARRAY_TASK_ID}.bcf.gz
-
+#INBCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}_drop.bcf.gz
+#OUTBCF_NAME=EMR_WGS_norm_${SLURM_ARRAY_TASK_ID}.bcf.gz
+INBCF_NAME=EMR_WGS_drop.bcf.gz
+OUTBCF_NAME=EMR_WGS_drop_norm_.bcf.gz
 ### Normalize variants
 
 echo I am running bcftools norm using $REFERENCE, $OUTBCF, and $INBCF as imported from the wrapper script
@@ -32,7 +33,7 @@ echo The date is $DATE
 
 #echo done indexing using tabix
 
-CMD="bcftools norm -f $REFERENCE -O b -o ${OUTDIR}/${OUTBCF_NAME} --threads $CPUS ${INDIR}/${INBCF_NAME}"
+CMD="bcftools norm -f $REFERENCE --threads ${CPUS} -O b -o ${OUTDIR}/${OUTBCF_NAME} --threads $CPUS ${INDIR}/${INBCF_NAME}"
 
 printf "\n%s\n\n" "$CMD"
 
@@ -40,7 +41,7 @@ eval $CMD
 
 wait
 
-tabix -p bcf $OUTBCF
+tabix -p bcf ${OUTDIR}/${OUTBCF_NAME}
 
 
 #print some environment variables to stdout for records
