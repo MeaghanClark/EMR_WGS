@@ -26,12 +26,13 @@ bcftools --version
 # define variables
 BCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_chrom_list.txt' # list with full file paths to bcf files to merge, make sure the files are in the correct order! 
 OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename2.bcf.gz' 
+REFERENCE='/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta'
 
 # merge bcf files in correct order 
 bcftools concat \
 -n \
---file-list ${BCF_LIST} \
--O u \
+--file-list $BCF_LIST \
+-O b \
 | bcftools norm \
 -f $REFERENCE \
 -O b \

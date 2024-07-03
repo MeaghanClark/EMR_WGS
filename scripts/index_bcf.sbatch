@@ -16,6 +16,8 @@
 
 BCF_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz
 
+# sort file 
+bcftools sort $BCF_FILE -o 
 # index file
 tabix -p bcf $BCF_FILE
 
