@@ -17,9 +17,9 @@ module list
 samtools --version
 
 # define array vars
-CHROMLIST="${CHROM_LIST_DIR}/scaf_list_${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes
+CHROMLIST="${CHROM_LIST_DIR}/Scate-ma1_${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes
 
-OUTFILE=${OUTDIR}/EMR_all_qc.${SLURM_ARRAY_TASK_ID}.bamstats 
+OUTFILE=${OUTDIR}/EMR_all_qc.Scate-ma1_${SLURM_ARRAY_TASK_ID}.bamstats 
 
 echo I am using chrom file ${CHROMLIST} and outputting ${OUTFILE}
 
