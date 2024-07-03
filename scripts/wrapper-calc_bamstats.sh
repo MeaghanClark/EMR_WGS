@@ -9,7 +9,7 @@
 
 # define high level vars
 date=$(date +%m%d%Y)
-jobname=bamstats
+jobname=bamstats_scatema1
 
 # define dirs
 chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/Scate-ma1_subsets
