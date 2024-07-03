@@ -16,6 +16,7 @@
 module purge
 module load powertools
 module load BCFtools/1.19-GCC-13.2.0
+module load R/4.3.2-gfbf-2023a
 module list 
 
 
