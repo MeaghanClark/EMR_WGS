@@ -12,7 +12,7 @@
 
 ##########
 
-# This script merges bcf files into a single file, normalizes them, renames them, and indexes the output
+# This script merges bcf files into a single file, normalizes them, and indexes the output
 # Last updated 07/03/2024 by MI Clark, based on script by T Linderoth
 
 #load programs we want to use, updated for ubuntu
@@ -34,9 +34,6 @@ bcftools concat \
 -O u \
 | bcftools norm \
 -f $REFERENCE \
--O u \
-| bcftools reheader \
---samples /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_rename_samples.txt \
 -O b \
 -o $OUTFILE
 
