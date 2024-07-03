@@ -23,7 +23,7 @@ for (infile in flist) {
 	df <- rbind(df, read.table(infile, head=TRUE, na.strings=".", colClasses=classes))
 }
 
-#df <- read.table("/Users/meaghan/Desktop/EMR_WGS/bamstats_test.txt", head=TRUE, na.strings=".", colClasses=classes) # DELETE
+#df <- read.table("/Users/meaghan/Desktop/EMR_WGS/legacy/bamstats_test.txt", head=TRUE, na.strings=".", colClasses=classes) # DELETE
 
 df.stats <- data.frame(stat=colnames(df))
 df.stats$mean = sapply(1:ncol(df),function(x,val){mean(as.numeric(val[,x]), na.rm=TRUE)}, val=df)
@@ -92,7 +92,7 @@ mtext((median(depth)*2), at = (median(depth)*2), col = "green")
 legend("topright", c("+/- 0.5", "+/- 0.25", "x2"), col = c("red", "blue", "green"), lty = 1, lwd = 2)
 
 # other stats
-for(i in c(4:9)){
+for(i in c(4:ncol(df))){
     hist(na.omit(as.numeric(df[,i])), main = NULL, xlab = colnames(df)[i])
     print(paste0("Wow! I made a histogram from column ", i)) 
 }
