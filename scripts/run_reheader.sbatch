@@ -22,7 +22,7 @@ bcftools --version
 
 # define variables
 # run code
-CMD="bcftools reheader --threads 4 --samples /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_rename_samples.txt -o ./EMR_WGS_drop_norm_rename.bcf.gz EMR_WGS_drop_norm.bcf.gz"
+CMD="bcftools reheader --threads 4 --samples /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_rename_samples.txt -o /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename2.bcf.gz /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz"
 
 printf "\n%s\n\n" "$CMD"
 eval $CMD
