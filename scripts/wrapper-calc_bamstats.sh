@@ -9,10 +9,10 @@
 
 # define high level vars
 date=$(date +%m%d%Y)
-jobname=bamstats_scatema1
+jobname=bamstats_scatema2
 
 # define dirs
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/Scate-ma1_subsets
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/Scate-ma2_subsets
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
 outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats
 
