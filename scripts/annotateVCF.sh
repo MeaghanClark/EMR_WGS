@@ -5,13 +5,13 @@
 #SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=1         # number of CPUs (or cores) per task (same as -c)
 #SBATCH --mem-per-cpu=20G            # memory required per allocated CPU (or core)
-#SBATCH --job-name=vcf_stats_sum      # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/home/clarkm89/EMR_WGS/log_vcf_stats_sum/vcf_stats_sum_%A.out"
-#SBATCH --error="/mnt/home/clarkm89/EMR_WGS/log_vcf_stats_sum/vcf_stats_sum_%A.err"
-
+#SBATCH --job-name=annotateVCF     # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/annotate/annotate_%A.out"
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/annotate/annotate_%A.err"
+#SBATCH --account=bradburd
 ##########
 
-# load modules
+# load modules NEED TO UPDATE
 module purge
 module load Java/1.8.0_152 
 module load bzip2/1.0.6 
