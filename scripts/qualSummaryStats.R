@@ -7,11 +7,13 @@ if (length(args) < 1) {
         stop()
 }
 
-flist <- as.character(read.table(args[1], head=FALSE)$V1) 
+flist <- as.character(read.table(args[1], head=FALSE)$V1) # list of file name 
+#flist <- "/Users/meaghan/Desktop/EMR_WGS/variants/bamstats_TEST.txt" # delete! 
 outname_sum <- args[2] 
 outfile_hist <- args[3]
 subidx <- NULL
-if (length(args) > 1) subidx = as.numeric(args[4:length(args)])
+if (length(args) > 1) subidx = as.numeric(args[4:length(args)]) 
+#subidx = c(3, 4, 5, 6, 7, 8, 9)  # delete! 
 
 df <- NULL
 fheader <- read.table(flist[1],head=TRUE,nrows=1)
@@ -22,8 +24,6 @@ for (infile in flist) {
 	cat(paste0("Merging ", infile, "\n"))
 	df <- rbind(df, read.table(infile, head=TRUE, na.strings=".", colClasses=classes))
 }
-
-#df <- read.table("/Users/meaghan/Desktop/EMR_WGS/legacy/bamstats_test.txt", head=TRUE, na.strings=".", colClasses=classes) # DELETE
 
 df.stats <- data.frame(stat=colnames(df))
 df.stats$mean = sapply(1:ncol(df),function(x,val){mean(as.numeric(val[,x]), na.rm=TRUE)}, val=df)
@@ -45,10 +45,9 @@ cat("Finished with text output summary\n")
 cat("starting to make some histograms...\n")
 
 pdf(file = outfile_hist, height = 6, width = 6)
-
 # total depth hist: 
-depth <- as.numeric(df[,3])
-hist(depth, main = NULL,  xlab = colnames(df)[3])
+depth <- as.numeric(df[,1])
+hist(depth, main = NULL,  xlab = colnames(df)[1])
 abline(v = median(depth), col = "black", lwd = 2)
 mtext(median(depth), at = median(depth))
 
@@ -70,7 +69,7 @@ mtext((median(depth)*2), at = (median(depth)*2), col = "green")
 legend("topright", c("+/- 0.5", "+/- 0.25", "x2"), col = c("red", "blue", "green"), lty = 1, lwd = 2)
   
 # zoomed in depth: 
-hist(depth, main = NULL, xlim = c(0, 6000), xlab = colnames(df)[3])
+hist(depth, main = NULL, xlim = c(0, 6000), xlab = colnames(df)[1])
 abline(v = median(depth), col = "black", lwd = 2)
 mtext(median(depth), at = median(depth))
 
@@ -92,7 +91,7 @@ mtext((median(depth)*2), at = (median(depth)*2), col = "green")
 legend("topright", c("+/- 0.5", "+/- 0.25", "x2"), col = c("red", "blue", "green"), lty = 1, lwd = 2)
 
 # other stats
-for(i in c(4:ncol(df))){
+for(i in c(2:ncol(df))){
     hist(na.omit(as.numeric(df[,i])), main = NULL, xlab = colnames(df)[i])
     print(paste0("Wow! I made a histogram from column ", i)) 
 }
