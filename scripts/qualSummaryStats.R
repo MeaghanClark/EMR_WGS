@@ -44,7 +44,7 @@ cat("Finished with text output summary\n")
 
 cat("starting to make some histograms...\n")
 
-pdf(file = outname_hist, height = 6, width = 6)
+pdf(file = outfile_hist, height = 6, width = 6)
 
 # total depth hist: 
 depth <- as.numeric(df[,3])
