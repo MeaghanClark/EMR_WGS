@@ -10,7 +10,7 @@
 #SBATCH --account=bradburd
 ##########
 
-# load modules NEED TO UPDATE
+# load modules 
 module purge
 module load powertools
 module load Java/21.0.2
@@ -23,7 +23,7 @@ BEDFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_m
 OUTFILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/annotate_vcf/EMR_drop_norm_annotated1.vcf.gz" # annotated VCF! 
 GRPFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/EMR_groups_qc.txt' #CHANGE
 
-CMD="bcftools view --no-version $BCF | $EXEC --dpbounds 1885,5656 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE" #CHANGE dpbounds here! 
+CMD="bcftools view --no-version $BCF | $EXEC --dpbounds 1885,5656 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE" 
 
 printf "\n%s\n\n" "$CMD"
 eval $CMD
