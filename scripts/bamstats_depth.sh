@@ -19,7 +19,7 @@ module list
 
 # define variables
 EXEC='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/qualDepth.R'
-DEPTH_FILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_ALL_bamstats_depth.Robj'
+DEPTH_FILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_bamstats_depth.txt'
 ROBJ='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_ALL_bamstats_depth.Robj' 
 REPORT_FILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_ALL_qc_depth.pdf' 
 

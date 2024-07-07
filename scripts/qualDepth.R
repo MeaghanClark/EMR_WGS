@@ -2,10 +2,11 @@
 args <- commandArgs(trailingOnly=TRUE)
 
 flist = args[1] #"/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_bamstats_depth.txt"
-#depth <- read.table(flist, head=TRUE)
-depth <- load(flist, verbose = T)
+depth <- read.table(flist, head=TRUE)
+#depth <- load(flist, verbose = T)
 
-#save(depth, file = args[2]) # "/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_bamstats_depth.Robj"
+save(depth, file = args[2]) # "/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_bamstats_depth.Robj"
+
 print("Before converting to numeric...")
 
 str(depth)
