@@ -18,12 +18,13 @@ module load BCFtools/1.19-GCC-13.2.0
 module list
 
 EXEC='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/insertAnnotations_emr.pl' # need to customize vcf header descriptions for emr based on vcf summary stats
-BCF="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz" # Merged bcf file! 
-BEDFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_mask_fail.bed' # output from gen_masks.sbatch, double check file name! 
-OUTFILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/annotate_vcf/EMR_drop_norm_annotated1.vcf.gz" # annotated VCF! 
+BCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz' # Merged bcf file! 
+OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf/EMR_drop_norm_annotated1_${SLURM_ARRAY_TASK_ID}.vcf.gz' # annotated VCF! 
 GRPFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/EMR_groups_qc.txt' #CHANGE
+REGFILE='${CHROM_LIST_DIR}/annotate_chunk_${SLURM_ARRAY_TASK_ID}.txt'
+BEDFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/splits/EMR_mask_fail_${SLURM_ARRAY_TASK_ID}.bed' # output from gen_masks.sbatch, double check file name! 
 
-CMD="bcftools view --no-version $BCF | $EXEC --dpbounds 1885,5656 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE" 
+CMD="bcftools view -R $REGFILE --no-version $BCF | $EXEC --dpbounds 1885,5656 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE" 
 
 printf "\n%s\n\n" "$CMD"
 eval $CMD
