@@ -2,9 +2,9 @@
 
 ########## SBATCH Lines for Resource Request ##########
 
-#SBATCH --time=24:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=4	      # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem=50G            # memory required per allocated CPU (or core)
+#SBATCH --mem=100G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=vcf_stats      # you can give your job a name for easier identification (same as -J)
 #SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/reheader/reheader_%A.out"
 #SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/reheader/reheader_%A.err"
@@ -22,7 +22,7 @@ bcftools --version
 
 # define variables
 # run code
-CMD="bcftools reheader --threads 4 --samples /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_rename_samples.txt -o /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename2.bcf.gz /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz"
+CMD="bcftools reheader --threads 4 --samples /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_rename_samples.txt -o /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz"
 
 printf "\n%s\n\n" "$CMD"
 eval $CMD
