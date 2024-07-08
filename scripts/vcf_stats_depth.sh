@@ -3,7 +3,7 @@
 ########## SBATCH Lines for Resource Request ##########
 #SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=1         # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=200G            # memory required per allocated CPU (or core)
+#SBATCH --mem-per-cpu=400G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=vcfstats_depth     # you can give your job a name for easier identification (same as -J)
 #SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/vcfstats_sum/vcfstats_depth%A.out"
 #SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/vcfstats_sum/vcfstats_depth%A.err"
@@ -20,9 +20,9 @@ module list
 
 # define variables
 EXEC='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/qualDepth.R'
-DEPTH_FILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_vcfstats_depth.Robj'
-ROBJ='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_vcfstats_depth.Robj' 
-REPORT_FILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_drop_norm_vcfstats_depth.pdf' 
+DEPTH_FILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/vcfstats_allsites/EMR_vcfstats_depth.Robj'
+ROBJ='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/vcfstats_allsites/EMR_vcfstats_depth.Robj' 
+REPORT_FILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/vcfstats_allsites/EMR_drop_norm_vcfstats_depth.pdf' 
 
 # run code
 CMD="$EXEC $DEPTH_FILE $ROBJ $REPORT_FILE" 

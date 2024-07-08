@@ -20,7 +20,7 @@ module list
 EXEC='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/insertAnnotations_emr.pl' # need to customize vcf header descriptions for emr based on vcf summary stats
 BCF="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz" # Merged bcf file! 
 BEDFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_mask_fail.bed' # output from gen_masks.sbatch, double check file name! 
-OUTFILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/annotate_vcf/EMR_drop_norm_annotated1.vcf.gz" # annotated VCF! 
+OUTFILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_drop_norm_annotated1.vcf.gz" # annotated VCF! 
 GRPFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/EMR_groups_qc.txt' #CHANGE
 
 CMD="bcftools view --no-version $BCF | $EXEC --dpbounds 1885,5656 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE" 
