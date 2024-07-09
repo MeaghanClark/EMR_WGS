@@ -33,7 +33,7 @@ if [ ! -d $outdir ]; then mkdir $outdir; fi
 
 sbatch --job-name=$jobname \
 --array=1-$array_no \
---export=$outdir,CPUS=$cpus,BIG_BCF=$big_bcf,LOGFILESDIR=$logfilesdir,DATE=$date,CHROM_LIST_DIR=$chrom_list_dir \
+--export=OUTDIR=$outdir,CPUS=$cpus,BIG_BCF=$big_bcf,LOGFILESDIR=$logfilesdir,DATE=$date,CHROM_LIST_DIR=$chrom_list_dir \
 --cpus-per-task=$cpus \
 --mem=$total_mem \
 --output=$logfilesdir/${jobname}_%A-%a.out \
