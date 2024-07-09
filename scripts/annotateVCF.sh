@@ -1,28 +1,19 @@
 #!/bin/bash --login
 
-########## SBATCH Lines for Resource Request ##########
-#SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --cpus-per-task=1         # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=20G            # memory required per allocated CPU (or core)
-#SBATCH --job-name=annotateVCF     # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/annotate/annotate_%A.out"
-#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/annotate/annotate_%A.err"
-#SBATCH --account=bradburd
-##########
-
 # load modules 
 module purge
 module load powertools
 module load Java/21.0.2
 module load BCFtools/1.19-GCC-13.2.0
+module load Perl-bundle-CPAN/5.38.0-GCCcore-13.2.0
 module list
 
 EXEC='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/insertAnnotations_emr.pl' # need to customize vcf header descriptions for emr based on vcf summary stats
-BCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz' # Merged bcf file! 
+BCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz' # Merged bcf file! 
 OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf/EMR_drop_norm_annotated1_${SLURM_ARRAY_TASK_ID}.vcf.gz' # annotated VCF! 
 GRPFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/EMR_groups_qc.txt' #CHANGE
 REGFILE='${CHROM_LIST_DIR}/annotate_chunk_${SLURM_ARRAY_TASK_ID}.txt'
-BEDFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/splits/EMR_mask_fail_${SLURM_ARRAY_TASK_ID}.bed' # output from gen_masks.sbatch, double check file name! 
+BEDFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_mask_fail_sorted.bed' # output from gen_masks.sbatch, double check file name! 
 
 CMD="bcftools view -R $REGFILE --no-version $BCF | $EXEC --dpbounds 1885,5656 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE" 
 
@@ -30,7 +21,11 @@ printf "\n%s\n\n" "$CMD"
 eval $CMD
 wait
 
-tabix -p vcf $OUTFILE
+module rm BCFtools/1.19-GCC-13.2.0 
+module load tabixpp/1.1.2-GCC-12.3.0
+module list
+
+tabix -p vcf /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf/EMR_drop_norm_annotated1_${SLURM_ARRAY_TASK_ID}.vcf.gz
 
 #print some environment variables to stdout for records
 echo ----------------------------------------------------------------------------------------

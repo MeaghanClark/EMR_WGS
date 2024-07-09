@@ -19,23 +19,24 @@ outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/
 
 # define slurm job details
 cpus=1
-total_mem=40G
+total_mem=12G
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable and reference files
-executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/annotateVCF.sbatch
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/annotateVCF.sh
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 if [ ! -d $outdir ]; then mkdir $outdir; fi
 
 sbatch --job-name=$jobname \
-		--export=REFERENCE=$reference,CPUS=$cpus,RUN_NAME=$run_name,LOGFILESDIR=$logfilesdir,DATE=$date,INDIR=$indir,OUTDIR=$outdir \
+		--array=1-$array_no \
+		--export=CPUS=$cpus,RUN_NAME=$run_name,CHROM_LIST_DIR=$chrom_list_dir,LOGFILESDIR=$logfilesdir,DATE=$date,INDIR=$indir,OUTDIR=$outdir \
 		--cpus-per-task=$cpus \
 		--mem=$total_mem \
 		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
 		--error=$logfilesdir/${jobname}_${date}_%A-%a.err \
-		--time=84:00:00 \
+		--time=12:00:00 \
 		--account=bradburd \
 		$executable
 
