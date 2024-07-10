@@ -12,7 +12,7 @@ date=$(date +%m%d%Y)
 jobname=gen_mask
 
 # define dirs
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scaffolds
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
 
 # define running vars

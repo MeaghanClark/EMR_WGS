@@ -1,17 +1,17 @@
 #!/bin/bash
 
 ########## SBATCH Lines for Resource Request ##########
-############# #SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
-############# #SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
-############# #SBATCH --mem-per-cpu=48G            # memory required per allocated CPU (or core)
-############# #SBATCH --job-name=gen_masks    # you can give your job a name for easier identification (same as -J)
-############# #SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/gen_mask/gen_mask_%A.out" 
-############# #SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/gen_mask/gen_mask_%A.err"
-############# #SBATCH --account=bradburd
-##########
+# --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
+# --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
+# --mem-per-cpu=48G            # memory required per allocated CPU (or core)
+# --job-name=gen_masks    # you can give your job a name for easier identification (same as -J)
+# --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/gen_mask/gen_mask_%A.out" 
+# --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/gen_mask/gen_mask_%A.err"
+# --account=bradburd
+# ^ add SBATCH back to run directly
 
 # This script generates bed file of site masks based on bam statistics
-# Last updated 05/18/2023 by MI Clark,based on script by T Linderoth
+# Last updated 07/10/2023 by MI Clark,based on script by T Linderoth
 
 #load programs we want to use
 module purge
@@ -21,9 +21,9 @@ module list
 
 # define variables 
 EXEC=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/bedmask.pl
-BAMSTATS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/chrom_bamstats/EMR_ALL_qc_ordered_${SLURM_ARRAY_TASK_ID}.bamstats
-OUTPREFIX=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_mask_${SLURM_ARRAY_TASK_ID}
-REPORT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_mask_report_${SLURM_ARRAY_TASK_ID}.txt
+BAMSTATS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_all_qc.${SLURM_ARRAY_TASK_ID}.bamstats
+OUTPREFIX=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/by_scaf/EMR_mask_${SLURM_ARRAY_TASK_ID}
+REPORT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/by_scaf/EMR_mask_report_${SLURM_ARRAY_TASK_ID}.txt
 
 ### create bed file of masks
 
