@@ -4,7 +4,7 @@
 
 # Loop through each chrom_N.txt file
 COORDINATE_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200/chrom_list_${SLURM_ARRAY_TASK_ID}.txt"
-OUTPUT_FILE="${OUTPUT_DIR}/EMR_ALL_qc_ordered_${SLURM_ARRAY_TASK_ID}.bamstats"
+OUTPUT_FILE="${OUTDIR}/EMR_ALL_qc_ordered_${SLURM_ARRAY_TASK_ID}.bamstats"
 
 # Initialize the output file with header
 HEADER=$(head -n 1 "$BIG_BAMSTATS")

@@ -25,7 +25,7 @@ total_mem=25G
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable, reference and needed scripts
-executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/split_bcf.sbatch
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/split_bamstats.sbatch
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi

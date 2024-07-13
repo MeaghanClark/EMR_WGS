@@ -28,25 +28,26 @@ executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/split_bams
 #check if logfiles directory has been created in submit dir yet; if not, make one
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 
-for i in 197 198 199 200; 
+for i in 198 199 200; 
 do
-chrom_file=${chrom_list_dir}/chrom_list_${i}.txt
-array_no=$(cat $chrom_file | wc -l)
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/chrom_bamstats/chrom_${i}
-if [ ! -d $outdir ]; then mkdir $outdir; fi
-
-sbatch --job-name=$jobname \
---array=1-$array_no \
---export=OUTDIR=$outdir,CPUS=$cpus,I=$i,BIG_BAMSTATS=$big_bamstats,LOGFILESDIR=$logfilesdir,CHROM_FILE=$chrom_file,CHROM_LIST_DIR=$chrom_list_dir \
---cpus-per-task=$cpus \
---mem=$total_mem \
---output=$logfilesdir/${jobname}_${i}_%A-%a.out \
---error=$logfilesdir/${jobname}_${i}_%A-%a.err \
---time=12:00:00 \
---account=bradburd \
-$executable
-
-echo submitted job to subset $big_bamstats using $chrom_file
+	chrom_file=${chrom_list_dir}/chrom_list_${i}.txt
+	array_no=$(cat $chrom_file | wc -l)
+	
+	outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/chrom_bamstats/chrom_${i}
+	if [ ! -d $outdir ]; then mkdir $outdir; fi
+	
+	sbatch --job-name=$jobname \
+	--array=1-$array_no \
+	--export=OUTDIR=$outdir,CPUS=$cpus,I=$i,BIG_BAMSTATS=$big_bamstats,LOGFILESDIR=$logfilesdir,CHROM_FILE=$chrom_file,CHROM_LIST_DIR=$chrom_list_dir \
+	--cpus-per-task=$cpus \
+	--mem=$total_mem \
+	--output=$logfilesdir/${jobname}_${i}_%A-%a.out \
+	--error=$logfilesdir/${jobname}_${i}_%A-%a.err \
+	--time=12:00:00 \
+	--account=bradburd \
+	$executable
+	
+	echo submitted job to subset $big_bamstats using $chrom_file
 done
 
 

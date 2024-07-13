@@ -13,25 +13,26 @@ module list
 # Input files
 echo splitting ${BIG_BCF}
 
-CHUNK_FILE=${CHROM_LIST_DIR}/chrom_list_${SLURM_ARRAY_TASK_ID}.txt
+CHUNK_FILE=${CHROM_LIST_DIR}/scaf_list_${SLURM_ARRAY_TASK_ID}.txt
 
 # Read the coordinate file line by line
-while IFS= read -r REGION; do
-    # Define the output file name
-    OUTPUT_FILE="${OUTDIR}/EMR_WGS_drop_norm_${SLURM_ARRAY_TASK_ID}.bcf.gz"
-    # Extract the region from the BCF file
-    CMD="bcftools view -R $CHUNK_FILE -o $OUTPUT_FILE -O u $BIG_BCF"
-    printf "\n%s\n\n" "$CMD"
-    eval $CMD
-	wait
-done < "$CHUNK_FILE"
+# Define the output file name
+OUTPUT_FILE="${OUTDIR}/EMR_WGS_drop_norm_${SLURM_ARRAY_TASK_ID}.bcf.gz"
+
+SCAF=$(cat $CHUNK_FILE)
+
+# Extract the region from the BCF file
+CMD="bcftools view -r $SCAF -o $OUTPUT_FILE -O b $BIG_BCF"
+printf "\n%s\n\n" "$CMD"
+eval $CMD
+wait
 
 module purge
 module load tabixpp/1.1.2-GCC-12.3.0
 module list
 
 # CHANGE FILE NAME
-tabix -p vcf ${OUTDIR}/EMR_WGS_drop_norm_${SLURM_ARRAY_TASK_ID}.bcf.gz
+tabix -p bcf ${OUTDIR}/EMR_WGS_drop_norm_${SLURM_ARRAY_TASK_ID}.bcf.gz
 
 #print some environment variables to stdout for records
 echo ----------------------------------------------------------------------------------------

@@ -13,7 +13,7 @@ date=$(date +%m%d%Y)
 
 #define dirs:
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname} 
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scaffolds
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scaf_single_line
 indir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/
 outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/
 

@@ -8,7 +8,7 @@ echo using $CHROM_FILE to speed up job $I
 read -r CHR START END <<< $(awk -v row=${SLURM_ARRAY_TASK_ID} -F',' 'NR==row {print $1, $2, $3}' "$CHROM_FILE" | tr -d '\r')
 
 
-OUTPUT_FILE="${OUTPUT_DIR}/EMR_ALL_qc_ordered_${I}_${SLURM_ARRAY_TASK_ID}.bamstats"
+OUTPUT_FILE="${OUTDIR}/EMR_ALL_qc_ordered_${I}_${SLURM_ARRAY_TASK_ID}.bamstats"
 
 # Initialize the output file with header
 HEADER=$(head -n 1 "$BIG_BAMSTATS")
