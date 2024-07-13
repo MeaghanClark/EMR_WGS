@@ -9,12 +9,12 @@
 
 # define high level vars
 date=$(date +%m%d%Y)
-jobname=split_bcf
+jobname=split_bcf_scaf
 
 # define dirs
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scaf_single_line
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/split_bcf
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bcf_by_scaf
 
 # define input and output files
 big_bcf=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz # should be indexed! 
