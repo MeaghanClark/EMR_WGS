@@ -1,28 +1,31 @@
 #!/bin/bash
 
 ########## SBATCH Lines for Resource Request ##########
-#SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --time=168:00:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=48G            # memory required per allocated CPU (or core)
-#SBATCH --job-name=gen_masks    # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/gen_mask/gen_mask_%A.out" 
-#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/gen_mask/gen_mask_%A.err"
+#SBATCH --mem-per-cpu=20G            # memory required per allocated CPU (or core)
+#SBATCH --job-name=var_mask    # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/var_mask/var_mask%A.out" 
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/var_mask/var_mask%A.err"
 #SBATCH --account=bradburd
 ##########
 
 # This script generates pos file of sites that pass quality control 
-# Last updated 07/8/2023 by MI Clark,based on script by T Linderoth
+# Last updated 07/13/2023 by MI Clark,based on script by T Linderoth
 
 #load programs we want to use
 # don't purge modules, don't know how to load angsd separately... 
+module purge
 module load powertools
+module load Java/21.0.2
 module load BCFtools/1.19-GCC-13.2.0
-module list 
+module load Perl-bundle-CPAN/5.38.0-GCCcore-13.2.0
+module list
 
 bcftools --verion
 
-VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_drop_norm_annotated1.vcf.gz'
-OUTPOS='/mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/annotated/allsites/posk_autosome_qc_allsites.pos'
+VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_drop_norm_annotated1_${SLURM_ARRAY_TASK_ID}.vcf.gz'
+OUTPOS='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotated/allsites/EMR_qc_allsites_${SLURM_ARRAY_TASK_ID}.pos'
 
 
 # filtering pass: keep sites where 100% individuals have at least 15X coverage, and 90% of individuals have a GC more than 15
@@ -42,9 +45,6 @@ bcftools view -H -f "PASS" -i 'N_PASS(GT!="mis" & FMT/DP > 14) >= 313' "$VCF" | 
 # uniq is because some sites show up more than once in the VCF
 
 angsd sites index "$OUTPOS"
-
-
-
 
 
 #print some environment variables to stdout for records
