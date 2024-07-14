@@ -14,7 +14,7 @@ IN_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf
 OUT_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf_MI/EMR_MI_drop_norm_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz
 
 # run code
-bcftools view --threads 4 --samples $MI_SAMPLES -o $OUT_FILE $IN_FILE
+bcftools view --threads 4 --samples-file $MI_SAMPLES -o $OUT_FILE $IN_FILE
 
 wait 
 

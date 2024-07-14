@@ -8,7 +8,7 @@
 #  run from project directory (where you want output directory to be created)
 
 # define high level vars
-jobname=annotateVCF
+jobname=extract_variants
 date=$(date +%m%d%Y)
 
 #define dirs:
@@ -23,14 +23,14 @@ total_mem=12G
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable and reference files
-executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/annotateVCF.sh
+executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/extract_all_variants.sbatch
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 if [ ! -d $outdir ]; then mkdir $outdir; fi
 
 sbatch --job-name=$jobname \
-		--array=1-$array_no \
+		--array=4-$array_no \
 		--export=CPUS=$cpus,RUN_NAME=$run_name,CHROM_LIST_DIR=$chrom_list_dir,LOGFILESDIR=$logfilesdir,DATE=$date,INDIR=$indir,OUTDIR=$outdir \
 		--cpus-per-task=$cpus \
 		--mem=$total_mem \
