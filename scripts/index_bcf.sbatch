@@ -14,12 +14,12 @@
 
 # index bcf file
 
-BCF_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz
+BCF_FILE=/mnt/scratch/clarkm89/EMR_WGS/EMR_drop_norm_annotated1.vcf.gz
 
 # sort file 
-bcftools sort $BCF_FILE -o 
+#bcftools sort $BCF_FILE -o 
 # index file
-tabix -p bcf $BCF_FILE
+tabix -p vcf $BCF_FILE
 
 wait 
 
