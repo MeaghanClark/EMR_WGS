@@ -9,10 +9,10 @@ module load powertools
 module load BCFtools/1.19-GCC-13.2.0
 module list
 
-IN_VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf_MI/EMR_MI_drop_norm_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz
-OUT_VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/biall_VCF_MI/EMR_MI_pass_biall_${SLURM_ARRAY_TASK_ID}.vcf.gz
+IN_VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf/EMR_drop_norm_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz
+OUT_VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/biall_VCF_all/EMR_pass_biall_${SLURM_ARRAY_TASK_ID}.vcf.gz
 
-bcftools view -f "PASS" -m 2 -M 2 -v snps -i 'F_PASS(FMT/DP>14) > 0.9 && F_PASS(FMT/GQ>14) > 0.9' -O z -o $OUT_VCF $IN_VCF
+bcftools view -f "PASS" -m 2 -M 2 -v snps -O z -o $OUT_VCF $IN_VCF
 
 module purge 
 module load tabixpp/1.1.2-GCC-12.3.0

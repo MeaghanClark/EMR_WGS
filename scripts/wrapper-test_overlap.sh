@@ -11,7 +11,7 @@ array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimme
 
 #define dirs:
 indir=/mnt/scratch/clarkm89/EMR_WGS/processedReads/ # defined in array_key
-outdir=/mnt/scratch/clarkm89/EMR_WGS/alignments/
+outdir=/mnt/scratch/clarkm89/EMR_WGS/alignments_overlap/
 scratchnode=/mnt/scratch/clarkm89/EMR_WGS/alignmentsTemp/ # path to scratch dir where temp files will be stored
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}_redo #name of directory to create and then write log files to
 

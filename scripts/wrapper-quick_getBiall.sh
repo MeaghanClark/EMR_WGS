@@ -11,6 +11,7 @@ date=$(date +%m%d%Y)
 
 #define dirs:
 chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scaf_single_line
+logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname} 
 
 # define slurm job details
 cpus=1
@@ -25,8 +26,8 @@ if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 if [ ! -d $outdir ]; then mkdir $outdir; fi
 
 sbatch --job-name=$jobname \
-		--array=6-$array_no \
-		--export=CPUS=$cpus,RUN_NAME=$run_name,CHROM_LIST_DIR=$chrom_list_dir,LOGFILESDIR=$logfilesdir,DATE=$date,INDIR=$indir,OUTDIR=$outdir \
+		--array=2-3 \
+		--export=CPUS=$cpus,RUN_NAME=$run_name,CHROM_LIST_DIR=$chrom_list_dir,LOGFILESDIR=$logfilesdir,DATE=$date \
 		--cpus-per-task=$cpus \
 		--mem=$total_mem \
 		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
