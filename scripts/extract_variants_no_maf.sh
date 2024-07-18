@@ -2,12 +2,12 @@
 
 ########## SBATCH Lines for Resource Request ##########
 #SBATCH --time=168:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --array=2-98
+#SBATCH --array=99-103
 #SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=48G            # memory required per allocated CPU (or core)
+#SBATCH --mem-per-cpu=100G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=ext_var_nomaf    # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/ext_var_nomaf/ext_var_nomaf_%A.out" 
-#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/ext_var_nomaf/ext_var_nomaf_%A.err"
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/ext_var_nomaf/ext_var_nomaf_%A_%a.out" 
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/ext_var_nomaf/ext_var_nomaf_%A_%a.err"
 #SBATCH --account=bradburd
 ##########
 
