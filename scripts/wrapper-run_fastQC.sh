@@ -11,13 +11,13 @@
 
 # define high level variables
 jobname=run_fastQC
-#array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_list.txt # make rawData_list.txt
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_list.txt 
+array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_list_AugReseq.txt # make rawData_list.txt
+#array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_list.txt 
 #array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rawData_list_Ster.txt
 rundate=$(date +%m%d%Y)
 
 # define directories
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/trimReadsQC # change if using trimmed reads! 
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawReadsQC/Aug_reseq # change if using trimmed reads! 
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/fastQC
  
 # make sure dir exists

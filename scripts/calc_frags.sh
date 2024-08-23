@@ -2,11 +2,12 @@
 
 ########## SBATCH Lines for Resource Request ##########
 #SBATCH --time=168:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --array=1-320
 #SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=48G            # memory required per allocated CPU (or core)
+#SBATCH --mem-per-cpu=8G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=calc_frag    # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/calc_frag/calc_frag_%A.out" 
-#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/calc_frag/calc_frag_%A.err"
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/calc_frag/calc_frag_%A_%a.out" 
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/calc_frag/calc_frag_%A_%a.err"
 #SBATCH --account=bradburd
 ##########
 
@@ -19,12 +20,15 @@ module load JAGS/4.3.2-foss-2023a
 module load powertools
 module list
 
-
 BAMLIST=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/rmdup_bamlist.txt
-OUTREPORT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/alignments/rmdup_frag_lengths.txt
-OUTHIST=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/alignments/rmdup_FragDist.png 
 
-bamPEFragmentSize --bamfiles $BAMLIST --outRawFragmentLengths $OUTREPORT -o $OUTHIST
+BAM=$(awk "NR==${SLURM_ARRAY_TASK_ID}" $BAMLIST)
+NAME=$(basename $BAM)
+
+OUTREPORT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/alignments/${NAME}_frag_lengths.txt
+OUTHIST=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/alignments/${NAME}_FragDist.png
+
+bamPEFragmentSize --bamfiles $BAM --outRawFragmentLengths $OUTREPORT -o $OUTHIST
 
 
 wait

@@ -2,7 +2,7 @@
 
 # trim_reads.sbatch
 # This script runs fastp on raw sequencing data to trim adapters and polyG tails
-# Last updated 06//16/2024 by MI Clark, script format inspired by R Toczydlowski 
+# Last updated 06/16/2024 by MI Clark, script format inspired by R Toczydlowski 
 
 #--------------- EXECUTABLE ---------------
 
