@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Path to the directory containing the files
-FILE_DIR="/mnt/scratch/clarkm89/EMR_WGS/fastqs_10686-MC"
-OUTDIR="/mnt/scratch/clarkm89/EMR_WGS/rawData"
+FILE_DIR="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawData/Aug_reseq/fastqs_10686-MC"
+OUTDIR="/mnt/scratch/clarkm89/EMR_WGS/rawData/Aug_reseq"
 # Path to the ID mapping file
 ID_MAPPING_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/newWGS_ids.txt"
 

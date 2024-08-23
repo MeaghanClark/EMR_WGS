@@ -3,7 +3,7 @@
 # align_to_genome.sbatch
 # This script uses bwa mem to aligned trimmed and QC-checked reads to a reference genome. 
 # resulting sam files are converted to bam, then indexed, sorted, duplicates are removed, and read pair overlap trimmed
-# Last updated 06/18/2024 by MI Clark, originally written by MI Clark and R Toczydlowski based on script by B Reid
+# Last updated 08/22/2024 by MI Clark, originally written by MI Clark and R Toczydlowski based on script by B Reid
 
 #--------------- EXECUTABLE ---------------
 
@@ -27,21 +27,41 @@ module list
 #	SCRATCHNODE
 
 
-# define read files using ARRAY_KEY
 line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
-IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
 
-BASE=$(basename "$FORWARDREAD")
-SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
+if echo $ARRAY_KEY | grep -q quad; then
+	IFS=$'\t' read -r FORWARDREAD REVERSEREAD FORWARDREAD2 REVERSEREAD2 <<< "$line"
+        BASE=$(basename "$FORWARDREAD")
+        SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
 
-# text for troubleshooting
-echo using $REFERENCE 
-echo trying to locate files $FORWARDREAD and $REVERSEREAD
-echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
+        # text for troubleshooting
+        echo using $REFERENCE 
+        echo trying to locate files $FORWARDREAD and $REVERSEREAD and $FORWARDREAD2 and $REVERSEREAD2
+        echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
 
-#run bwa 
-bwa mem -t $CPUS $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
- 
+        #run bwa 
+        # for two sets of paired fastq files:
+	bwa mem -t $CPUS $REFERENCE $FORWARDREAD $REVERSEREAD $FORWARDREAD2 $REVERSEREAD2 > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+
+
+elif echo $ARRAY_KEY | grep -q paired; then
+	IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
+	BASE=$(basename "$FORWARDREAD")
+	SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
+	
+	# text for troubleshooting
+	echo using $REFERENCE 
+	echo trying to locate files $FORWARDREAD and $REVERSEREAD
+	echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
+	
+	#run bwa 
+	# for two sets of paired fastq files:
+	bwa mem -t $CPUS $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+
+else
+	echo Your array key is not for paired or quaded files... whats up with that? 
+fi
+
 echo I have created a .sam file for $SAMPLE_NAME and put it in $SCRATCHNODE
 
  # run samtools
@@ -77,7 +97,7 @@ rm ${SCRATCHNODE}/${SAMPLE_NAME}.positionsort.bam
 echo I have deleted some of the intermediate files
 
 # trim overlap
-bam clipOverlap --in ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam --out ${OUTDIR}/${SAMPLE_NAME}.trim.bam 
+bam clipOverlap --in ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam --stats --out ${OUTDIR}/${SAMPLE_NAME}.trim.bam 
 
 wait
 
