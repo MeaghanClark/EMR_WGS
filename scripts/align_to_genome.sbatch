@@ -3,7 +3,7 @@
 # align_to_genome.sbatch
 # This script uses bwa mem to aligned trimmed and QC-checked reads to a reference genome. 
 # resulting sam files are converted to bam, then indexed, sorted, duplicates are removed, and read pair overlap trimmed
-# Last updated 08/22/2024 by MI Clark, originally written by MI Clark and R Toczydlowski based on script by B Reid
+# Last updated 08/22/2024 by MI Clark, originally written by MI Clark and R Toczydlowski based on scripts by B Reid and T Linderoth
 
 #--------------- EXECUTABLE ---------------
 
@@ -26,41 +26,54 @@ module list
 #	OUTDIR
 #	SCRATCHNODE
 
-
 line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
 
-if echo $ARRAY_KEY | grep -q quad; then
-	IFS=$'\t' read -r FORWARDREAD REVERSEREAD FORWARDREAD2 REVERSEREAD2 <<< "$line"
-        BASE=$(basename "$FORWARDREAD")
-        SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
+IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
+BASE=$(basename "$FORWARDREAD")
+SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
 
-        # text for troubleshooting
-        echo using $REFERENCE 
-        echo trying to locate files $FORWARDREAD and $REVERSEREAD and $FORWARDREAD2 and $REVERSEREAD2
-        echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
+# text for troubleshooting
+echo using $REFERENCE 
+echo trying to locate files $FORWARDREAD and $REVERSEREAD
+echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
 
-        #run bwa 
-        # for two sets of paired fastq files:
-	bwa mem -t $CPUS $REFERENCE $FORWARDREAD $REVERSEREAD $FORWARDREAD2 $REVERSEREAD2 > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+# generate read group information 
 
+###
+prevrg='N'
+readgroup=''
+nmatch=0
+lstart=-3
 
-elif echo $ARRAY_KEY | grep -q paired; then
-	IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
-	BASE=$(basename "$FORWARDREAD")
-	SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
-	
-	# text for troubleshooting
-	echo using $REFERENCE 
-	echo trying to locate files $FORWARDREAD and $REVERSEREAD
-	echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
-	
-	#run bwa 
-	# for two sets of paired fastq files:
-	bwa mem -t $CPUS $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
-
+# define data description based on data source 
+if echo $SAMPLE_NAME | grep -q Scat; then
+	DATADS='Whole genome sequences from eastern massasauga rattlesnakes from Mathur et al. 2023' # data description, e.g. 'Whole genome sequences from Florida scrub jays sequenced for the Mosaic project.'
+elif echo $SAMPLE_NAME | grep -q scat; then
+	DATADS='Whole genome sequences from eastern massasauga rattlesnakes from Mathur et al. 2023' # data description, e.g. 'Whole genome sequences from Florida scrub jays sequenced for the Mosaic project.'
 else
-	echo Your array key is not for paired or quaded files... whats up with that? 
+	DATADS='Whole genome sequences from eastern massasauga rattlesnakes from Michigan sequenced for the EMR WGS project' # data description, e.g. 'Whole genome sequences from Florida scrub jays sequenced for the Mosaic project.'
 fi
+
+# need to check multiple headers to make sure sample barcodes converge (i.e. no sequencing error)
+while [ $nmatch -lt 10 ]
+do
+	lstart=$((lstart + 4))
+	lend=$((lstart + 1))
+	readheader=$(zcat "$FORWARDREAD" | sed -n "${lstart}p;${lend}q" | sed 's/ [[:digit:]]//')
+	readinfo=($(echo "$readheader" | perl -e 'chomp($read = <>); @arr = split(/:/,$read); print "@arr[2,3,$#arr]";'))
+	barcode=$(sed 's/+/-/' <<< "${readinfo[2]}")
+	readgroup="@RG\tID:${readinfo[0]}.${readinfo[1]}\tBC:${barcode}\tDS:${DATADS}\tLB:${samplib}\tPL:ILLUMINA\tPU:${readinfo[0]}.${readinfo[1]}.${barcode}\tSM:${SAMPLE_NAME}"
+
+	if [ "$readgroup" = "$prevrg" ] && ! [[ "$barcode" =~ 'N' ]]; then ((nmatch++)); fi
+	prevrg="$readgroup"
+done
+
+
+###
+#run bwa 
+# for two sets of paired fastq files:
+bwa mem -t $CPUS -R '$readgroup' $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+
 
 echo I have created a .sam file for $SAMPLE_NAME and put it in $SCRATCHNODE
 
@@ -109,4 +122,3 @@ echo PRINTING SUBSET OF ENVIRONMENT VARIABLES:
 (set -o posix ; set | grep -v ^_ | grep -v ^EB | grep -v ^BASH | grep -v PATH | grep -v LS_COLORS)
 
 echo ----------------------------------------------------------------------------------------
-seff ${SLURM_JOBID}
