@@ -1,26 +1,37 @@
 #!/bin/bash
 
-# wrapper-align_to_genome.sh		
+# wrapper-align_to_genome.sh <seq_run>		
 # This script starts an array job to align trimmed sequencing reads output by trim_reads.sbatch to a reference genome
 # Last updated 06/20/2024 by MI Clark, originally written by R Toczydlowski 
 
 # define high level variables
 date=$(date +%m%d%Y)
-jobname=align_quads #label for SLURM book-keeping 
-array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_quad.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
-	# "trimmed_reads_paired.txt" will align paired-end reads  
-	# "trimmed_reads_quad.txt" will align individuals that were sequenced twice (two pairs of paired-end reads)
+echo $date 
+
+seq_run=$1 # should be "original" or "resequencing"
+
+if [[ $seq_run == original ]]; then 
+	jobname=align_orig #label for SLURM book-keeping 
+	array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_orig.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
+
+elif [[ $seq_run == resequencing ]]; then 
+	jobname=align_reseq #label for SLURM book-keeping 
+	array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_AugReseq.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
+else echo "ERROR, seq_run is invalid"
+
+	# "trimmed_reads_paired.txt" will align paired-end reads from the original run   
+	# "trimmed_reads_Aug_reseq.txt" will align paired-end reads from the August resequencing run
+fi 
 
 #define dirs:
-outdir=/mnt/scratch/clarkm89/EMR_WGS/alignments/
-scratchnode=/mnt/scratch/clarkm89/EMR_WGS/alignmentsTemp/ # path to scratch dir where temp files will be stored
+outdir=/mnt/scratch/clarkm89/EMR_WGS/alignments/${jobname}
+scratchnode=/mnt/scratch/clarkm89/EMR_WGS/alignmentsTemp/${jobname} # path to scratch dir where temp files will be stored
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname} #name of directory to create and then write log files to
 
 #check if directories have been created; if not, make 
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi
 if [ ! -d $outdir ]; then mkdir $outdir; fi
 if [ ! -d $scratchnode ]; then mkdir $scratchnode; fi
-
 
 # define slurm job details
 cpus=3 #number of CPUs to request/use per dataset
