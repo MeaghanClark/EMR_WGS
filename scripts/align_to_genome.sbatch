@@ -68,11 +68,16 @@ do
 	prevrg="$readgroup"
 done
 
+echo using $readgroup
 
 ###
 #run bwa 
 # for two sets of paired fastq files:
-bwa mem -t $CPUS -R '$readgroup' $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+CMD = "bwa mem -t $CPUS -R '$readgroup' $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam"
+printf "\n%s\n\n" "$CMD"
+eval $CMD
+
+wait
 
 
 echo I have created a .sam file for $SAMPLE_NAME and put it in $SCRATCHNODE
