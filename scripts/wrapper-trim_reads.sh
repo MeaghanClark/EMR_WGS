@@ -31,7 +31,7 @@ array_no=$(cat $array_key | wc -l)
 executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/trim_reads.sbatch
 
 sbatch --job-name=$jobname \
-	--array=1-$array_no \
+	--array=171,172,175,180,184 \
 	--export=JOBNAME=$jobname,ARRAY_KEY=$array_key,CPUS=$cpus,RUNDATE=$rundate,EXECUTABLE=$executable,LOGFILESDIR=$logfilesdir,OUTDIR=$outdir \
 	--cpus-per-task=$cpus \
 	--mem-per-cpu=$ram_per_cpu \

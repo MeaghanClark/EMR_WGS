@@ -73,7 +73,7 @@ echo using $readgroup
 ###
 #run bwa 
 # for two sets of paired fastq files:
-CMD = "bwa mem -t $CPUS -R '$readgroup' $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam"
+CMD="bwa mem -t $CPUS -R '$readgroup' $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam"
 printf "\n%s\n\n" "$CMD"
 eval $CMD
 
