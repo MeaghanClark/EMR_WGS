@@ -15,7 +15,7 @@ IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
 
 
 BASE=$(basename "$FORWARDREAD")
-IND_NAME=$(echo "${BASE}" | cut -d "_" -f 1) # 1,2 if there is a "_" in ind id 
+IND_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2) # 1,2 if there is a "_" in ind id 
 
 
 # required variables: 
