@@ -54,7 +54,7 @@ reference=/mnt/scratch/clarkm89/EMR_ref_2024/GCA_039880765.1/GCA_039880765.1_rSi
 #       --array=1-$array_no \
 #submit job to cluster
 sbatch --job-name=$jobname \
-		--array=6,19,34,49,65,79,94,109,110,124,139,154,162,178,187,188,189 \
+		--array=1 \
 		--export=ARRAY_KEY=$array_key,REFERENCE=$reference,CPUS=$cpus,SCRATCHNODE=$scratchnode,OUTDIR=$outdir,LOGFILESDIR=$logfilesdir \
 		--cpus-per-task=$cpus \
 		--mem-per-cpu=$ram_per_cpu \
