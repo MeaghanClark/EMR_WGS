@@ -88,11 +88,11 @@ echo I have created a .bam file for $SAMPLE_NAME and put it in $SCRATCHNODE
 # delete sam file
 #rm ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
 
-samtools sort -n ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam | \
-samtools view -f 0x2 - | \
-samtools fixmate -m - | \
-samtools sort -o - | \
-samtools markdup -r - > ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam 
+#samtools sort -n ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam | \
+#samtools view -f 0x2 - | \
+#samtools fixmate -m - - | \
+#samtools sort - | \
+#samtools markdup -@ $CPUS -r - ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam 
 
 # 
 # samtools sort -n -o ${SCRATCHNODE}/${SAMPLE_NAME}.sort.bam ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam #sort by readname
