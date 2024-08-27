@@ -34,7 +34,7 @@ if [ ! -d $outdir ]; then mkdir $outdir; fi
 if [ ! -d $scratchnode ]; then mkdir $scratchnode; fi
 
 # define slurm job details
-cpus=3 #number of CPUs to request/use per dataset
+cpus=2 #number of CPUs to request/use per dataset
 ram_per_cpu=6G #amount of RAM to request/use per CPU CHANGE
 array_no=$(cat $array_key | wc -l)
 
@@ -54,7 +54,7 @@ reference=/mnt/scratch/clarkm89/EMR_ref_2024/GCA_039880765.1/GCA_039880765.1_rSi
 #       --array=1-$array_no \
 #submit job to cluster
 sbatch --job-name=$jobname \
-		--array=1 \
+		--array=119,121,124,125,130,134,135,137,139,144,146,148,149,157,165,168,171,178,179,181,183,184,185,191,192 \
 		--export=ARRAY_KEY=$array_key,REFERENCE=$reference,CPUS=$cpus,SCRATCHNODE=$scratchnode,OUTDIR=$outdir,LOGFILESDIR=$logfilesdir \
 		--cpus-per-task=$cpus \
 		--mem-per-cpu=$ram_per_cpu \
