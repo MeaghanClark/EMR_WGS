@@ -12,10 +12,12 @@ seq_run=$1 # should be "original" or "resequencing"
 
 if [[ $seq_run == original ]]; then 
 	jobname=bam_flt_orig #label for SLURM book-keeping 
+	indir=/mnt/scratch/clarkm89/EMR_WGS/alignments/align_orig
 	array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_orig.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
 
 elif [[ $seq_run == resequencing ]]; then 
 	jobname=bam_flt_reseq #label for SLURM book-keeping 
+	indir=/mnt/scratch/clarkm89/EMR_WGS/alignments/align_reseq
 	array_key=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/trimmed_reads_AugReseq.txt # file with names of trimmed reads, one ind per line, reads separated by blank space
 else echo "ERROR, seq_run is invalid"
 
@@ -54,7 +56,7 @@ executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/align_to_g
 #submit job to cluster
 sbatch --job-name=$jobname \
 		--array=1-$array_no \
-		--export=ARRAY_KEY=$array_key,CPUS=$cpus,SCRATCHNODE=$scratchnode,OUTDIR=$outdir,LOGFILESDIR=$logfilesdir \
+		--export=ARRAY_KEY=$array_key,CPUS=$cpus,SCRATCHNODE=$scratchnode,OUTDIR=$outdir,INDIR=$indir,LOGFILESDIR=$logfilesdir \
 		--cpus-per-task=$cpus \
 		--mem-per-cpu=$ram_per_cpu \
 		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
