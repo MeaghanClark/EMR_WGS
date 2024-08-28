@@ -1,21 +1,10 @@
 #!/bin/bash --login
 
-########## SBATCH Lines for Resource Request ##########
-
-#SBATCH --time=72:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --cpus-per-task=16       # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=8G            # memory required per allocated CPU (or core)
-#SBATCH --job-name=merge_bams    # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/bamstats_merge/merge_%A.out"
-#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/bamstats_merge/merge_%A.err" 
-#SBATCH --account=bradburd
-##########
-
 # This script merges bam files 
-# Last updated 06/22/2024 by MI Clark,based on script by T Linderoth
-# Input: Reference genome with path, list of bamfiles, output directory for megaBAM file
+# Last updated 08/26/2024 by MI Clark,based on script by T Linderoth
+# Input: Reference genome with path, list of bamfiles
 #
-# Output: normalized zipped bcf file 
+# Output: merged BAM file for individuals sequenced twice
 
 #load programs we want to use
 module purge
@@ -23,22 +12,28 @@ module load SAMtools/1.18-GCC-12.3.0
 module load powertools
 module list 
 
-# define variables
-REF='/mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2021/Scatenatus_HiC_v1.1.fasta'
-BAMS='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bam_list.txt' # make list of bamfiles, one file per line
-OUTFILE='/mnt/scratch/clarkm89/EMR_WGS/bamstats/mega_bam.bam' # put big BAM in scratch
+# define sample name and bams to merge from array key 
 
-CMD="samtools merge -O BAM --reference $REF -b $BAMS -o $OUTFILE -@ $SLURM_CPUS_PER_TASK"
+line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
+
+IFS=$'\t' read -r BAM1 BAM2 <<< "$line"
+BASE=$(basename "$BAM1")
+SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
+
+# define output file
+OUTFILE='${OUTDIR}/${SAMPLE_NAME}.trim.merge.bam ' 
+
+# define command
+CMD="samtools merge -o $OUTFILE -O BAM --reference $REF -@ $CPUS $BAM1 $BAM2"
 
 # run command 
-
 printf "\n%s\n\n" "$CMD"
 
 eval $CMD
 
 wait
 
-samtools index -@ $SLURM_CPUS_PER_TASK "$OUTFILE"
+samtools index -@ $CPUS "$OUTFILE"
 
 
 #print some environment variables to stdout for records
@@ -47,4 +42,3 @@ echo PRINTING SUBSET OF ENVIRONMENT VARIABLES:
 (set -o posix ; set | grep -v ^_ | grep -v ^EB | grep -v ^BASH | grep -v PATH | grep -v LS_COLORS)
 
 echo ----------------------------------------------------------------------------------------
-#seff ${SLURM_JOBID}
