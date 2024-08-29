@@ -18,13 +18,13 @@ line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
 
 IFS=$'\t' read -r BAM1 BAM2 <<< "$line"
 BASE=$(basename "$BAM1")
-SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
+SAMPLE_NAME=$(echo "${BASE}" | cut -d "." -f 1)
 
 # define output file
-OUTFILE='${OUTDIR}/${SAMPLE_NAME}.trim.merge.bam ' 
+OUTFILE=${OUTDIR}/${SAMPLE_NAME}.trim.merge.bam 
 
 # define command
-CMD="samtools merge -o $OUTFILE -O BAM --reference $REF -@ $CPUS $BAM1 $BAM2"
+CMD="samtools merge -o ${OUTFILE} -O BAM --reference $REF -@ $CPUS $BAM1 $BAM2"
 
 # run command 
 printf "\n%s\n\n" "$CMD"
@@ -33,7 +33,13 @@ eval $CMD
 
 wait
 
-samtools index -@ $CPUS "$OUTFILE"
+INDEX_CMD="samtools index -@ $CPUS ${OUTFILE}"
+
+printf "\n%s\n\n" "$INDEX_CMD"
+
+eval $INDEX_CMD
+
+printf "\n--FIN--\n"
 
 
 #print some environment variables to stdout for records

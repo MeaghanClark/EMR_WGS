@@ -21,7 +21,7 @@ if [ ! -d $scratchnode ]; then mkdir $scratchnode; fi
 
 # define running vars
 cpus=4
-ram_per_cpu=12
+mem=12G
 array_no=$(cat $array_key | wc -l)
 
 # define executable and reference
@@ -33,10 +33,10 @@ sbatch --job-name=$jobname \
 		--array=1-$array_no \
 		--export=ARRAY_KEY=$array_key,REF=$reference,CPUS=$cpus,OUTDIR=$outdir,LOGFILESDIR=$logfilesdir \
 		--cpus-per-task=$cpus \
-		--mem-per-cpu=$ram_per_cpu \
+		--mem=$mem \
 		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
 		--error=$logfilesdir/${jobname}_${date}_%A-%a.err \
-		--time=72:00:00 \
+		--time=24:00:00 \
 		--account=bradburd \
 		$executable
 
