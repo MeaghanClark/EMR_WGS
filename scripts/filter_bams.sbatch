@@ -24,6 +24,8 @@ module list
 #	OUTDIR
 #	SCRATCHNODE
 
+cd /mnt/scratch/clarkm89/
+
 line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
 
 IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
@@ -33,9 +35,9 @@ SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
 # text for troubleshooting
 echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.trim.bam 
 
-samtools sort -n ${INDIR}/${SAMPLE_NAME}.aln-pe.bam | \
-samtools fixmate -m - - | \
-samtools sort - | \
+samtools sort -n -@ $CPUS ${INDIR}/${SAMPLE_NAME}.aln-pe.bam | \
+samtools fixmate -m -@ $CPUS - - | \
+samtools sort - -@ $CPUS | \
 samtools markdup -@ $CPUS -r - ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam 
 
 # removing step to filter out unpaired reads: # samtools view -h -f 0x2 - | \
