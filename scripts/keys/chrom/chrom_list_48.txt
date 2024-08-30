@@ -1,7 +1,0 @@
-Scate-mi7	11189130	11705353
-Scate-mi8	1	9178058
-Scate-mi9	1	9062532
-Scate-mi10	1	7225174
-Scate-un1	1	2650490
-Scate-un2	1	1715100
-Scate-un3	1	73111

@@ -12,7 +12,7 @@ jobname=call_snps #label for SLURM book-keeping
 
 #define dirs:
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
-indir=/mnt/scratch/clarkm89/EMR_WGS/alignments/final/
+indir=/mnt/scratch/clarkm89/EMR_WGS/alignments/final
 outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants
 chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200
 

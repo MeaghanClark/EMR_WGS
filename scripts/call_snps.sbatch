@@ -35,10 +35,10 @@ BCF_NAME=EMR_WGS_${SLURM_ARRAY_TASK_ID}
 echo using $REFERENCE 
 echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf 
 
-make sure .bam files are indexed! 
+# make sure .bam files are indexed! 
 while read -r bam_file; do
     samtools index "$bam_file"
-done < /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bam_list.txt
+done < $LIST_OF_BAMFILES
 
 # parameter recs from T Linderoth
  bcftools mpileup \
