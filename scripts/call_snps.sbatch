@@ -36,9 +36,6 @@ echo using $REFERENCE
 echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf 
 
 # make sure .bam files are indexed! 
-while read -r bam_file; do
-    samtools index "$bam_file"
-done < $LIST_OF_BAMFILES
 
 # parameter recs from T Linderoth
  bcftools mpileup \
