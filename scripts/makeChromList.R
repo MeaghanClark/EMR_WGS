@@ -1,25 +1,24 @@
 library(stringr)
 
+# updated 8/29/24 for new reference genome
+
 # load and process chromosome names
-names <- read.csv("../scaf_names.txt", header=FALSE)$V1
+names <- read.csv("../rSisCat1_p1.0/ncbi_dataset/data/GCA_039880765.1/chrom_list.txt", header = FALSE)$V1
 
 names <- str_remove(names, ">")
 
-chrom_names <- str_split(names, " ")
-
-for(i in 1:length(chrom_names)){
-  if(length(chrom_names[[i]] > 1)){
-    chrom_names[[i]] <- chrom_names[[i]][1]
-  }
-}
+chrom_names <- unlist(lapply(X = strsplit(names, split = " "), FUN = function(x){x[1]}))[1:179]
 
 # load chromosome lengths
-lengths <- read.csv("../scaf_lengths.txt", header = FALSE)
+lengths <- read.csv("../rSisCat1_p1.0/ncbi_dataset/data/GCA_039880765.1/chrom_lengths.txt", header = FALSE, sep = " ")
+colnames(lengths) <- c("chrom_len", "chrom_name")
+
+lengths$chrom_name == chrom_names
 
 # make dataframe
-data <- cbind.data.frame(unlist(chrom_names), lengths)
-colnames(data) <- c("chrom_name", "chrom_len")
-
+# data <- cbind.data.frame(unlist(chrom_names), lengths)
+# colnames(data) <- c("chrom_name", "chrom_len")
+data <- lengths
 
 total_length <- sum(data$chrom_len)
 
@@ -97,6 +96,7 @@ split_genome <- function(genome_df, num_segments = no_chunks) {
 # Call the function to split the genome into segments
 genome_segments <- split_genome(data)
 
+116247423-115109114
 
 # export each dataframe in genome_segments as a separate .txt file, labelled 1 through 50 "chrom_list_${ARRAY_NO}.txt"
 
