@@ -37,12 +37,13 @@ echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf
 
 # make sure .bam files are indexed! 
 
+# removing -S flag because it conflicts with @RG of bams 
+
 # parameter recs from T Linderoth
  bcftools mpileup \
  -f $REFERENCE \
  -b $LIST_OF_BAMFILES \
  -R $CHROMLIST \
- -S $SAMPLE_NAMES \
  -C 0 \
  -d 10000 \
  -L 10000 \
@@ -59,10 +60,16 @@ echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf
  -P 0.002 \
  -O u \
  | bcftools +fill-tags \
- -O b \
+ -O b \ 
+ -- -t 'AF,ExcHet,NS' \
+ | bcftools reheader \
+ --samples $SAMPLE_NAMES
  -o ${OUTDIR}/${BCF_NAME}.bcf.gz \
- -- -t 'AF,ExcHet,NS'
+
  
+ 
+ CMD="bcftools reheader --threads 4 --samples /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_rename_samples.txt -o /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz"
+
 echo I have called SNPs using $LIST_OF_BAMFILES and $REFERENCE
 echo I have also output a bcf file and saved it here: ${OUTDIR}/${BCF_NAME}.bcf
 

@@ -30,7 +30,7 @@ executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/call_snps.
 reference=/mnt/scratch/clarkm89/EMR_ref_2024/GCA_039880765.1/GCA_039880765.1_rSisCat1_p1.0_genomic.fna #filepath of reference file
 
 list_of_bamfiles=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/final_bam_list.txt #list with paths to bam files we want to call SNPs for
-sample_names=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/final_bam_sample_names.txt
+sample_names=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/final_bam_just_sample_names.txt
 ploidyf=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/mt_ploidy.txt ### indicates haploid mito. genome
 
 #---------------------------------------------------------
