@@ -111,3 +111,32 @@ for(i in 1:length(genome_segments)){
               fileEncoding="UTF-8")
 }
 
+
+# make scaffold files containing entire chromosomes/scaffolds for normalization 
+
+# 1 through 20 get their own files
+for(i in 1:20){
+  write.table(data$chrom_name[i], file = paste0("../scripts/keys/scaffolds/Scaf_", i, ".txt"), 
+              row.names = FALSE, sep = "\t", 
+              col.names = FALSE, 
+              quote = FALSE, 
+              fileEncoding="UTF-8")
+}
+
+# 21 through 178 get their own combined file
+
+write.table(data$chrom_name[21:178], file = paste0("../scripts/keys/scaffolds/Scaf_21.txt"), 
+            row.names = FALSE, sep = "\n", 
+            col.names = FALSE, 
+            quote = FALSE, 
+            fileEncoding="UTF-8")
+
+
+
+
+
+
+
+
+
+
