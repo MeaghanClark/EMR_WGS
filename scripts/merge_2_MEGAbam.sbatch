@@ -3,11 +3,11 @@
 ########## SBATCH Lines for Resource Request ##########
 
 #SBATCH --time=72:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --cpus-per-task=16       # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem=128G            # memory required per allocated CPU (or core)
+#SBATCH --cpus-per-task=20       # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem=50G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=merge_bams    # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/bamstats_merge/merge_%A.out"
-#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/bamstats_merge/merge_%A.err" 
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_megaBAM/merge_mega_%A.out"
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_megaBAM/merge_mega_%A.err" 
 #SBATCH --account=bradburd
 ##########
 

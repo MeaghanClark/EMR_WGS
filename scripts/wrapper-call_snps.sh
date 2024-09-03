@@ -46,7 +46,7 @@ ploidyf=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/mt_ploid
 #submit job to cluster
 
 sbatch --job-name=$jobname \
-		--array=1-$array_no \
+		--array=121,125,129,130,134,139,144,147,151,154,159,163,165,166,167,168,173,174,179,180,181,184,185,189,190,193,194,195,198 \
 		--export=REFERENCE=$reference,CPUS=$cpus,LIST_OF_BAMFILES=$list_of_bamfiles,OUTDIR=$outdir,LOGFILESDIR=$logfilesdir,PLOIDYF=$ploidyf,SAMPLE_NAMES=$sample_names,CHROM_LIST_DIR=$chrom_list_dir \
 		--cpus-per-task=$cpus \
 		--mem-per-cpu=$ram_per_cpu \
