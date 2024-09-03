@@ -9,6 +9,10 @@
 # Output: ${OUTDIR}/${SAMPLE_NAME}.bcf  file, stored in directory at <storagenode>/<run_name>/called_snps
 #			example: /mnt/home/clarkm89/massasauga/called_snps/PCC_321.bcf 
 
+source /etc/profile
+
+module -b list
+
 echo we are starting calling snps!
 
 #load programs we want to use, updated to ubuntu
@@ -37,19 +41,19 @@ echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf
 
 # make sure .bam files are indexed! 
 
-# removing -S flag because it conflicts with @RG of bams 
-
 # parameter recs from T Linderoth
  bcftools mpileup \
  -f $REFERENCE \
  -b $LIST_OF_BAMFILES \
  -R $CHROMLIST \
+ -S $SAMPLE_NAMES \
  -C 0 \
  -d 10000 \
  -L 10000 \
  -q 20 \
  -Q 13 \
  --ns "UNMAP,SECONDARY,QCFAIL,DUP" \
+ --nu "PROPER_PAIR" \
  -a "FORMAT/AD,FORMAT/DP,FORMAT/QS,FORMAT/SP,FORMAT/SCR,INFO/AD,INFO/SCR" \
  -p \
  -O u \
@@ -60,13 +64,12 @@ echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf
  -P 0.002 \
  -O u \
  | bcftools +fill-tags \
- -O b \ 
- -- -t 'AF,ExcHet,NS' \
- | bcftools reheader \
- --samples $SAMPLE_NAMES
+ -O b \
  -o ${OUTDIR}/${BCF_NAME}.bcf.gz \
+ -- -t 'AF,ExcHet,NS'
 
- 
+echo --FIN-- 
+
  
  CMD="bcftools reheader --threads 4 --samples /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_rename_samples.txt -o /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz"
 
