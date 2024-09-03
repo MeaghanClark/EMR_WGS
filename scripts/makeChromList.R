@@ -20,6 +20,10 @@ lengths$chrom_name == chrom_names
 # colnames(data) <- c("chrom_name", "chrom_len")
 data <- lengths
 
+# remove Z chromosome (CM078132.1)
+data <- data[-which(data$chrom_name == "CM078132.1"),]
+
+
 total_length <- sum(data$chrom_len)
 
 no_chunks <- 200 # define number of chunks to break the genome into 
@@ -96,7 +100,6 @@ split_genome <- function(genome_df, num_segments = no_chunks) {
 # Call the function to split the genome into segments
 genome_segments <- split_genome(data)
 
-116247423-115109114
 
 # export each dataframe in genome_segments as a separate .txt file, labelled 1 through 50 "chrom_list_${ARRAY_NO}.txt"
 

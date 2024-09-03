@@ -1,5 +1,5 @@
 # Meaghan's Pipeline for WGS EMR Work --------------------------------------------------------------------------------------------------------
-# updated 5/23/2024
+# updated 08/19/2024
 
 GOAL: 
 INPUT:
@@ -9,11 +9,6 @@ SCRIPTS:
 CODE:
 OUTPUT:
 
-
-To do: 
-- write scripts locally 
-- documents input file names and output files names
-- indicate scripts 
 
 Directory structure: 
 
@@ -42,7 +37,6 @@ ARRAY KEYS:
 		#### in r #### 
 		1: 1, 2: 2, 3: 3+4, 4: 5-7, 5: 8-2004
 		# maybe ask Tyler about this! Use -R option, so need "CHROM", "BEG" and "END", which could keep each scaffold to one list, or could split scaffolds to make groups equal... how many groups? 
-	
 	
 
 SCRIPTS: 
