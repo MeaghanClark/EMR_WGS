@@ -116,7 +116,8 @@ for(i in 1:length(genome_segments)){
 
 # 1 through 20 get their own files
 for(i in 1:20){
-  write.table(data$chrom_name[i], file = paste0("../scripts/keys/scaffolds/Scaf_", i, ".txt"), 
+  line <- cbind.data.frame(data$chrom_name[i], 1, data$chrom_len[i])
+  write.table(line, file = paste0("../scripts/keys/scaffolds/Scaf_", i, ".txt"), 
               row.names = FALSE, sep = "\t", 
               col.names = FALSE, 
               quote = FALSE, 
@@ -125,8 +126,9 @@ for(i in 1:20){
 
 # 21 through 178 get their own combined file
 
-write.table(data$chrom_name[21:178], file = paste0("../scripts/keys/scaffolds/Scaf_21.txt"), 
-            row.names = FALSE, sep = "\n", 
+line <- cbind.data.frame(data$chrom_name[21:178], 1, data$chrom_len[21:178])
+write.table(line, file = paste0("../scripts/keys/scaffolds/Scaf_21.txt"), 
+            row.names = FALSE, sep = "\t", 
             col.names = FALSE, 
             quote = FALSE, 
             fileEncoding="UTF-8")
