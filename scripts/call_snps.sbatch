@@ -70,8 +70,6 @@ echo I will put the output in ${OUTDIR}/${BCF_NAME}.bcf
 
 echo --FIN-- 
 
- 
- CMD="bcftools reheader --threads 4 --samples /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_rename_samples.txt -o /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm_rename.bcf.gz /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz"
 
 echo I have called SNPs using $LIST_OF_BAMFILES and $REFERENCE
 echo I have also output a bcf file and saved it here: ${OUTDIR}/${BCF_NAME}.bcf

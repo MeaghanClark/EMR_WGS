@@ -14,7 +14,7 @@ date=$(date +%m%d%Y)
 
 #define dirs:
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname} 
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/scaffolds # make scaffolds dir and list --> 
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/scaffolds # normalize by scaffolds! 
 indir=/mnt/scratch/clarkm89/EMR_WGS/variants/
 outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/norm_byScaf
 
