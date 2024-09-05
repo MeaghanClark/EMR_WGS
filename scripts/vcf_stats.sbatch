@@ -3,7 +3,7 @@
 #--------------- EXECUTABLE ---------------
 
 # This script saves vcf stats information on a bcf_file, in a region specified by REGION
-# Last updated 07/04/2023 by MI Clark,based on script by T Linderoth
+# Last updated 09/04/2023 by MI Clark,based on script by T Linderoth
 
 # load modules update to ubuntu
 module purge
@@ -13,7 +13,7 @@ module list
 
 
 # define variables
-MEGA_BCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_drop_norm.bcf.gz' #CHECK
+MEGA_BCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_norm.bcf.gz' #CHECK
 REGION='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200/chrom_list_${SLURM_ARRAY_TASK_ID}.txt'
 OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/EMR_WGS_drop_norm_${SLURM_ARRAY_TASK_ID}.vcfstats'
 
