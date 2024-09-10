@@ -1,12 +1,17 @@
-#!/bin/bash
+#!/bin/bash --login
 
 #--------------- EXECUTABLE ---------------
 
 # This script runs bamstats on a merged bam file
-# Last updated 07/01/2023 by MI Clark,based on script by T Linderoth
-# Input: 
+# Last updated 09/10/2023 by MI Clark,based on script by T Linderoth
+# Input: MEGA bam and region file 
 #
-# Output: 
+# Output: bamstats
+
+# troubleshooting codE: 
+source /etc/profile
+module -b list
+### 
 
 #load programs we want to use, updated to ubuntu
 module purge
@@ -17,9 +22,9 @@ module list
 samtools --version
 
 # define array vars
-CHROMLIST="${CHROM_LIST_DIR}/Scate-ma2_${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes
+CHROMLIST="${CHROM_LIST_DIR}/chrom_list_region_${SLURM_ARRAY_TASK_ID}.txt" # path to list of chromosomes in chr:start-end format
 
-OUTFILE=${OUTDIR}/EMR_all_qc.Scate-ma2_${SLURM_ARRAY_TASK_ID}.bamstats 
+OUTFILE=${OUTDIR}/EMR_all_qc_${SLURM_ARRAY_TASK_ID}.bamstats 
 
 echo I am using chrom file ${CHROMLIST} and outputting ${OUTFILE}
 
