@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
 #SBATCH --mem-per-cpu=24G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=merge_bcf    # you can give your job a name for easier identification (same as -J)
-#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_rawBCF_%A.out"
-#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_rawBCF_%A.err"
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_normBCF_%A.out"
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_normBCF_%A.err"
 #SBATCH --account=bradburd
 
 ##########
@@ -24,7 +24,7 @@ module list
 bcftools --version
 
 # define variables
-BCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_chrom_list.txt' # list with full file paths to bcf files to merge
+BCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/bcf_norm_list.txt' # list with full file paths to bcf files to merge
 # bcf_chrom_list.txt used to merge raw bcf files that were run using chrom_200 region files
 # bcf_norm_list.txt used to merge normalized bcf files that were run using scaffold region files 
 OUTFILE='/mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_norm.bcf.gz' 
