@@ -1,9 +1,9 @@
 #!/bin/bash
 
 ########## SBATCH Lines for Resource Request ##########
-#SBATCH --time=80:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --time=96:00:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=1         # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem-per-cpu=400G            # memory required per allocated CPU (or core)
+#SBATCH --mem-per-cpu=500G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=bamstats_sum     # you can give your job a name for easier identification (same as -J)
 #SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/bamstats_sum/bamstats_sum_%A.out"
 #SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/bamstats_sum/bamstats_sum_%A.err"
@@ -11,7 +11,7 @@
 ##########
 
 # This script runs bcftools norm on a zipped bcf file
-# Last updated 07/04/2024 by MI Clark,based on script by T Linderoth
+# Last updated 09/11/2024 by MI Clark,based on script by T Linderoth
 
 #load programs we want to use
 module purge
