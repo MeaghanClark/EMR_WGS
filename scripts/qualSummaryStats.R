@@ -68,8 +68,9 @@ mtext((median(depth)*2), at = (median(depth)*2), col = "green")
 
 legend("topright", c("+/- 0.5", "+/- 0.25", "x2"), col = c("red", "blue", "green"), lty = 1, lwd = 2)
   
-# zoomed in depth: 
-hist(depth, main = NULL, xlim = c(0, 6000), xlab = colnames(df)[1])
+
+### zoomed in depth ----------------------------------------------------------
+hist(depth, main = NULL, xlim = c(0, 6000), xlab = "depth", breaks = 100000)
 abline(v = median(depth), col = "black", lwd = 2)
 mtext(median(depth), at = median(depth))
 
@@ -89,6 +90,7 @@ abline(v = (median(depth)*2), col = "green", lwd = 2)
 mtext((median(depth)*2), at = (median(depth)*2), col = "green")
 
 legend("topright", c("+/- 0.5", "+/- 0.25", "x2"), col = c("red", "blue", "green"), lty = 1, lwd = 2)
+
 
 # other stats
 for(i in c(2:ncol(df))){
