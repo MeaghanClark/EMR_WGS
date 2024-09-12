@@ -11,7 +11,7 @@
 # ^ add SBATCH back to run directly
 
 # This script generates bed file of site masks based on bam statistics
-# Last updated 07/10/2023 by MI Clark,based on script by T Linderoth
+# Last updated 09/12/2024 by MI Clark,based on script by T Linderoth
 
 #load programs we want to use
 module purge
@@ -21,9 +21,9 @@ module list
 
 # define variables 
 EXEC=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/bedmask.pl
-BAMSTATS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_all_qc.${SLURM_ARRAY_TASK_ID}.bamstats
-OUTPREFIX=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/by_scaf/EMR_mask_${SLURM_ARRAY_TASK_ID}
-REPORT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/by_scaf/EMR_mask_report_${SLURM_ARRAY_TASK_ID}.txt
+BAMSTATS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/bamstats/EMR_all_qc_${SLURM_ARRAY_TASK_ID}.bamstats
+OUTPREFIX=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/bed_by_chrom/EMR_mask_${SLURM_ARRAY_TASK_ID}
+REPORT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/reports/EMR_mask_report_${SLURM_ARRAY_TASK_ID}.txt
 
 ### create bed file of masks
 
@@ -31,7 +31,7 @@ echo The date is $DATE
 
 CMD="$EXEC --mindepth 1885 --maxdepth 5656 --minmq 35 --maxmq0 0.1 --minbq 20 --maxbq0 0.1 $BAMSTATS $OUTPREFIX > $REPORT" # update filtering values based on bamstats summaries
 
-# changed parameters based on output from make_bamstats_hists
+# changed parameters based on output from bamstats histograms 
 
 printf "\n%s\n\n" "$CMD"
 eval $CMD
