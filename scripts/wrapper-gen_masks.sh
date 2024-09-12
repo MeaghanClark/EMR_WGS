@@ -3,7 +3,7 @@
 # wrapper-gen_masks.sh		
 # This script starts an array job to run gen_masks in an array job
 # The array job will start one job per chromosome grouping
-# Last updated 06/24/2024 by MI Clark, script format inspired by R Toczydlowski and T Linderoth
+# Last updated 09/12/2024 by MI Clark, script format inspired by R Toczydlowski and T Linderoth
 
 #  run from project directory (where you want output directory to be created)
 
@@ -12,7 +12,7 @@ date=$(date +%m%d%Y)
 jobname=gen_mask
 
 # define dirs
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scaffolds
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/chrom_200_r
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
 
 # define running vars
