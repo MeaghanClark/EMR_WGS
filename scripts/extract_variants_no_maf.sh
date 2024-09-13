@@ -12,10 +12,10 @@
 ##########
 
 EXEC='/mnt/research/Fitz_Lab/projects/posk/variants/vcf/scripts/extractVariants.pl'
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf/EMR_drop_norm_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz # annotated allsites VCF
+INVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotate_vcf/EMR_drop_norm_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz # annotated allsites VCF
 OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/EMR_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz  # nomaf variant sites VCF
 
-CMD="$EXEC --skip_af $VCF | bgzip > $OUTVCF"
+CMD="$EXEC --skip_af $INVCF | bgzip > $OUTVCF"
 
 printf "\n%s\n\n" "$CMD"
 eval $CMD
