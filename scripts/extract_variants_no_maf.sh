@@ -10,8 +10,17 @@
 #SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/ext_var_nomaf/ext_var_nomaf_%A_%a.err"
 #SBATCH --account=bradburd
 ##########
+# troubleshooting code: 
+source /etc/profile
+module -b list
+### 
 
-EXEC='/mnt/research/Fitz_Lab/projects/posk/variants/vcf/scripts/extractVariants.pl'
+module purge
+module load powertools
+module load Perl-bundle-CPAN/5.38.0-GCCcore-13.2.0
+module list 
+
+EXEC='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/extractVariants.pl'
 INVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotated_vcf/EMR_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz # annotated allsites VCF
 OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/EMR_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz  # nomaf variant sites VCF
 

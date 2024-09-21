@@ -13,7 +13,7 @@ date=$(date +%m%d%Y)
 
 #define dirs:
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname} 
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/chrom_200_r
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200
 indir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/
 outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/
 
@@ -36,10 +36,10 @@ sbatch --job-name=$jobname \
 		--mem=$total_mem \
 		--output=$logfilesdir/${jobname}_${date}_%A-%a.out \
 		--error=$logfilesdir/${jobname}_${date}_%A-%a.err \
-		--time=168:00:00 \
+		--time=12:00:00 \
 		--account=bradburd \
 		$executable
 
-echo I submitted to normalize my bcf files!
+echo I submitted to annotate my bcf file!
 echo ----------------------------------------------------------------------------------------
 

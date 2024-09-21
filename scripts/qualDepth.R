@@ -49,7 +49,7 @@ mtext((median(depth)*2), at = (median(depth)*2), col = "green")
 legend("topright", c("+/- 0.5", "+/- 0.25", "x2"), col = c("red", "blue", "green"), lty = 1, lwd = 2)
 
 ### zoom 1 ----------------------------------------------------------
-hist(depth, main = NULL, xlim = c(0, 6000), xlab = "depth", breaks = 100000)
+hist(depth, main = NULL, xlim = c(0, 12000), xlab = "depth", breaks = 100000)
 abline(v = median(depth), col = "black", lwd = 2)
 mtext(median(depth), at = median(depth))
 
