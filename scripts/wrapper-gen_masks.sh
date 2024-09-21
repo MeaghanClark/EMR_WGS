@@ -12,7 +12,7 @@ date=$(date +%m%d%Y)
 jobname=gen_mask
 
 # define dirs
-chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/chrom_200_r
+chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200_r
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
 
 # define running vars
@@ -38,6 +38,6 @@ sbatch --job-name=$jobname \
 --account=bradburd \
 $executable
 
-echo I submitted an array job to split ${big_bamstats}!
+echo I submitted an array job to generate quality control masks!
 echo ----------------------------------------------------------------------------------------
 

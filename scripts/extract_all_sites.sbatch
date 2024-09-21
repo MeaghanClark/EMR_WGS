@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash --login
 
 ########## SBATCH Lines for Resource Request ##########
 # --time=168:00:00             # limit of wall clock time - how long the job will run (same as -t)
@@ -13,6 +13,11 @@
 
 # This script generates pos file of sites that pass quality control 
 # Last updated 09/13/2024 by MI Clark,based on script by T Linderoth
+
+# troubleshooting code: 
+source /etc/profile
+module -b list
+### 
 
 #load programs we want to use
 module purge

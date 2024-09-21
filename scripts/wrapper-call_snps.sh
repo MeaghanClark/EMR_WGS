@@ -13,7 +13,7 @@ jobname=call_snps #label for SLURM book-keeping
 #define dirs:
 logfilesdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/${jobname}
 indir=/mnt/scratch/clarkm89/EMR_WGS/alignments/final
-outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants
+outdir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/rawBCFs
 chrom_list_dir=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200
 
 #check if directories have been created; if not, make 
@@ -22,7 +22,7 @@ if [ ! -d $outdir ]; then mkdir $outdir; fi
 
 # define slurm job details
 cpus=1 #number of CPUs to request/use per dataset 
-ram_per_cpu=24G #amount of RAM to request/use per CPU
+ram_per_cpu=12G #amount of RAM to request/use per CPU
 array_no=$(ls $chrom_list_dir | wc -l) #***
 
 # define executable and reference genome 
@@ -46,7 +46,7 @@ ploidyf=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/mt_ploid
 #submit job to cluster
 
 sbatch --job-name=$jobname \
-		--array=121,125,129,130,134,139,144,147,151,154,159,163,165,166,167,168,173,174,179,180,181,184,185,189,190,193,194,195,198 \
+		--array=1-$array_no \
 		--export=REFERENCE=$reference,CPUS=$cpus,LIST_OF_BAMFILES=$list_of_bamfiles,OUTDIR=$outdir,LOGFILESDIR=$logfilesdir,PLOIDYF=$ploidyf,SAMPLE_NAMES=$sample_names,CHROM_LIST_DIR=$chrom_list_dir \
 		--cpus-per-task=$cpus \
 		--mem-per-cpu=$ram_per_cpu \

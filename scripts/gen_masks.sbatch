@@ -29,7 +29,7 @@ REPORT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/reports
 
 echo The date is $DATE
 
-CMD="$EXEC --mindepth 1885 --maxdepth 5656 --minmq 35 --maxmq0 0.1 --minbq 20 --maxbq0 0.1 $BAMSTATS $OUTPREFIX > $REPORT" # update filtering values based on bamstats summaries
+CMD="$EXEC --mindepth 2672 --maxdepth 8016 --minmq 35 --maxmq0 0.1 --minbq 20 --maxbq0 0.1 $BAMSTATS $OUTPREFIX > $REPORT" # update filtering values based on bamstats summaries
 
 # changed parameters based on output from bamstats histograms 
 
