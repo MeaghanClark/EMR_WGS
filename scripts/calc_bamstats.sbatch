@@ -8,7 +8,7 @@
 #
 # Output: bamstats
 
-# troubleshooting codE: 
+# troubleshooting code: 
 source /etc/profile
 module -b list
 ### 

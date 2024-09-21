@@ -20,7 +20,7 @@ lengths$chrom_name == chrom_names
 # colnames(data) <- c("chrom_name", "chrom_len")
 data <- lengths
 
-# remove Z chromosome (CM078132.1)
+# remove Z chromosome (CM078132.1) 
 data <- data[-which(data$chrom_name == "CM078132.1"),]
 
 
