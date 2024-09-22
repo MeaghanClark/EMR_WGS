@@ -15,7 +15,7 @@ module list
 # define variables
 MEGA_BCF='/mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_norm.bcf.gz' #CHECK
 REGION='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200/chrom_list_${SLURM_ARRAY_TASK_ID}.txt'
-OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/vcfstats/EMR_WGS_norm_${SLURM_ARRAY_TASK_ID}.vcfstats'
+OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_${SLURM_ARRAY_TASK_ID}.vcfstats'
 
 # run code
 CMD="(printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' 'CHR' 'POS' 'DP' 'NS' 'QUAL' 'MQ' 'RPBZ' 'MQBZ' 'BQBZ' 'ExcHet' 'PV4_STRAND' 'PV4_BASEQ' 'PV4_MAPQ' 'PV4_POS' && \

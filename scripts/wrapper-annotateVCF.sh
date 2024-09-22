@@ -3,7 +3,7 @@
 # wrapper-annotateVCF.sh		
 # This script starts an array job to annotate 
 # The array job will start one job per BCF in bcflist
-# Last updated 09/12/2024 by MI Clark, script format inspired by R Toczydlowski 
+# Last updated 09/21/2024 by MI Clark, script format inspired by R Toczydlowski 
 
 #  run from project directory (where you want output directory to be created)
 
