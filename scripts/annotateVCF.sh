@@ -22,7 +22,7 @@ BEDFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/bed_b
 
 #SCAF=$(cat $REGFILE)
 # trying -r, annotate by scaffold 
-CMD="bcftools view -R $REGFILE --no-version $BCF | $EXEC --dpbounds 2587,7761 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE" 
+CMD="bcftools view -R $REGFILE --no-version $BCF | $EXEC --dpbounds 2596,7788 --hetbound 1e-4 --bed $BEDFILE --overwrite --genorep $GRPFILE | bgzip > $OUTFILE" 
 
 printf "\n%s\n\n" "$CMD"
 eval $CMD
