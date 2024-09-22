@@ -21,8 +21,12 @@ outfile_hist = args[3]
 
 depth <- as.numeric(depth[,1])
 
+depth <- depth[!is.na(depth)]
+
 print("After converting to numeric...")
 str(depth)
+
+paste0("median: ", median(depth))
 
 pdf(file = outfile_hist, height = 6, width = 6)
 # total depth hist: ----------------------------------------------------------
