@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash --login
 ########## Define Resources Needed with SBATCH Lines ##########
 
 #SBATCH --time=08:00:00             # limit of wall clock time - how long the job will run (same as -t)
