@@ -34,7 +34,7 @@ sbatch --job-name=$jobname \
 --mem=$total_mem \
 --output=$logfilesdir/${jobname}_%A-%a.out \
 --error=$logfilesdir/${jobname}_%A-%a.err \
---time=72:00:00 \
+--time=4:00:00 \
 --account=bradburd \
 $executable
 
