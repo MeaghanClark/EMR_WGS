@@ -17,12 +17,17 @@
 
 # define variables 
 
-VCF_LIST=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/vcf_highQual_var_list.txt # list of vcf file form flt_high_qual_snps.sbatch, in order of chromosome chunk
-KEEP_CHROM=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/ref_chromosome_list.txt   # list of chromosomes to retain in output VCF file
+VCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/vcf_highQual_var_list.txt' # list of vcf file form flt_high_qual_snps.sbatch, in order of chromosome chunk
+KEEP_CHROM='CM078115.1,CM078116.1,CM078117.1,CM078118.1,CM078119.1,CM078120.1,CM078121.1,CM078122.1,CM078123.1,CM078124.1,CM078125.1,CM078126.1,CM078127.1,CM078128.1,CM078129.1,CM078130.1,CM078131.1' #/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/ref_chromosome_list.txt   # list of chromosomes to retain in output VCF file
 OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_variants_nomaf_chrom.vcf.gz
 
+#while IFS= read -r line; do 
+#	tabix -p vcf $line
+#	#echo $line
+#done < $VCF_LIST
+
 # concat high quality variants vcf files, then filter to only retain sites on autosomal chromosomes 
-bcftools concat -n -Ou --file-list $VCF_LIST | bcftools view -R $KEEP_CHROM -Oz -o $OUTVCF
+bcftools concat -f $VCF_LIST -a -r $KEEP_CHROM -Oz -o $OUTVCF
 
 tabix -p vcf $OUTVCF
 
