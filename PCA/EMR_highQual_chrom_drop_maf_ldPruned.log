@@ -1,0 +1,43 @@
+PLINK v1.90b6.21 64-bit (19 Oct 2020)
+Options in effect:
+  --allow-extra-chr
+  --extract EMR_highQual_chrom_drop_maf_ldPruned.prune.in
+  --file /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_highQual_chrom_drop_maf_ldPruned
+  --out /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned
+  --pca
+
+Hostname: dev-intel18
+Working directory: /mnt/ufs18/rs-012/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf
+Start time: Wed Sep 25 14:13:15 2024
+
+Random number seed: 1727287995
+96094 MB RAM detected; reserving 48047 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (1126212 variants, 223 people).
+--file:
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned-temporary.bed
++
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned-temporary.bim
++
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned-temporary.fam
+written.
+1126212 variants loaded from .bim file.
+223 people (0 males, 0 females, 223 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned.nosex
+.
+--extract: 227513 variants remaining.
+Using up to 39 threads (change this with --threads).
+Before main variant filters, 223 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.999994.
+227513 variants and 223 people pass filters and QC.
+Note: No phenotypes present.
+Relationship matrix calculation complete.
+--pca: Results saved to
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned.eigenval
+and
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned.eigenvec
+.
+
+End time: Wed Sep 25 14:13:24 2024
