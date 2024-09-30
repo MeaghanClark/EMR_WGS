@@ -15,6 +15,7 @@
 # Create genetic distance matrices from geno file
 
 module purge
+module load BCFtools/1.19-GCC-13.2.0
 module load powertools
 module list
 
@@ -26,7 +27,7 @@ NIND=222
 NSITES=2352466
 REPS=100
 
-$EXEC --n_threads ${cpus-per-task} --verbose 1 --n_boot_rep $REPS --geno $INPUTFILE --n_ind $NIND --n_sites $NSITES --out $OUTFILE
+$EXEC --n_threads 10 --verbose 1 --n_boot_rep $REPS --geno $INPUTFILE --n_ind $NIND --n_sites $NSITES --out $OUTFILE
 
 wait 
 
