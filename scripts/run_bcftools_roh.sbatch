@@ -33,7 +33,7 @@ VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQua
 OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/EMR_highQual_SNPs_nomaf_chrom_drop_${FILES[${SLURM_ARRAY_TASK_ID}]}_roh.txt
 CPUS=12
 
-bcftools roh --samples $SAMPLES --rec-rate 1.79e-8 -e GT,- --threads $CPUS --output $OUTPUT $VCF 
+bcftools roh --samples $SAMPLES --rec-rate 1.79e-8 -e GT,- --threads $CPUS --output-type sr --skip-indels --viterbi-training 1e-10 --output $OUTPUT $VCF 
 
 
 #print some environment variables to stdout for records
