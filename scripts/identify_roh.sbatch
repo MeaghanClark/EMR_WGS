@@ -19,9 +19,14 @@ FILE_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/roh_l
 FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$FILE_LIST") # pull out a line from the list of files based on the array number 
 REGION_OUT=$(echo "$FILE" | sed 's/\.txt$/\.regions/') # replace .txt with .regions, defines region output 
 FROH_OUT=$(echo "$FILE" | sed 's/\.txt$/\.froh/') # replace .txt with .froh, defines Froh output 
-EXEC='/mnt/research/Fitz_Lab/projects/mosaic/popgen/roh/scripts/rohRegions.pl' # perl script
+EXEC='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/rohRegions.pl' # perl script
 
-CMD="$EXEC 20 $HMMF $REGION_OUT > $FROH_OUT"
+# troubleshooting code
+echo file: $FILE
+echo region: $REGION_OUT
+echo Froh: $FROH_OUT
+
+CMD="$EXEC 20 $FILE $REGION_OUT > $FROH_OUT"
 
 printf "\n%s\n\n" "$CMD"
 
