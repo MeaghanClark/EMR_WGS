@@ -2,7 +2,7 @@
 
 ########## SBATCH Lines for Resource Request ##########
 #SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --array=1-4
+#SBATCH --array=1-222
 #SBATCH --cpus-per-task=1       # number of CPUs (or cores) per task (same as -c)
 #SBATCH --mem=50G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=id_roh     # you can give your job a name for easier identification (same as -J)
