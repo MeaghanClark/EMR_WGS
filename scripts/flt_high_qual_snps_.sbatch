@@ -24,9 +24,16 @@ module list
 bcftools --version 
 
 # define variables 
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz # all variants VCF, high coverage individuals
-INCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_SNPs/90_percent_cutoff/EMR_highQual_varfilter_${SLURM_ARRAY_TASK_ID}.pos # sites that pass genotype call quality filtering from extract_highQuality_sites.sbatch
-OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz 
+# for variants:
+#VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz # all variants VCF, high coverage individuals
+#INCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_SNPs/90_percent_cutoff/EMR_highQual_varfilter_${SLURM_ARRAY_TASK_ID}.pos # sites that pass genotype call quality filtering from extract_highQuality_sites.sbatch
+#OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz 
+
+# for all sites
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${SLURM_ARRAY_TASK_ID}.vcf.gz
+INCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_allsites/EMR_highQual_allsites_${SLURM_ARRAY_TASK_ID}.pos # sites that pass genotype call quality filtering from extract_highQuality_sites.sbatch
+OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_${SLURM_ARRAY_TASK_ID}.vcf.gz
+
 
 # filter VCF and output and new VCF
 bcftools view -T $INCLUDE -Oz -o $OUTVCF $VCF 

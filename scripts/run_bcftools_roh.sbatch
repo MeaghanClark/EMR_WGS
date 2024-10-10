@@ -3,7 +3,7 @@
 ########## SBATCH Lines for Resource Request ##########
 #SBATCH --time=24:00:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --array=1-222
-#SBATCH --cpus-per-task=4         # number of CPUs (or cores) per task (same as -c)
+#SBATCH --cpus-per-task=4        # number of CPUs (or cores) per task (same as -c)
 #SBATCH --mem=50G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=bcf_roh     # you can give your job a name for easier identification (same as -J)
 #SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/roh/bcf_roh_%A-%a.out"
@@ -27,17 +27,17 @@ ARRAY_KEY=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/roh_ke
 # use key file to get individual id and allele freq file 
 line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
 
-IFS=$'\t' read -r IND AF_FILE <<< "$line"
+IFS=$' ' read -r IND AF_FILE <<< "$line"
 echo individual is $IND
 echo using allele freq file $AF_FILE
 
 # define other variables 
 VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
-OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/EMR_highQual_SNPs_nomaf_chrom_drop_${FILES[${SLURM_ARRAY_TASK_ID}]}_roh.txt
+OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/${IND}_highQual_SNPs_nomaf_chrom_drop_roh.txt
 CPUS=4
 
 
-bcftools roh --samples $IND --rec-rate 1.79e-8 --AF-file $AF_FILE --threads $CPUS --output-type sr --skip-indels --viterbi-training 1e-10 --output $OUTPUT $VCF 
+bcftools roh --samples $IND --threads $CPUS --rec-rate 3.935e-8 --AF-file $AF_FILE --output-type sr --skip-indels --viterbi-training 1e-10 --output $OUTPUT $VCF 
 
 
 #print some environment variables to stdout for records

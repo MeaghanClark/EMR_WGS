@@ -11,11 +11,10 @@
 #SBATCH --account=bradburd
 ##########
 
-# high_qual_snps_.sbatch
-# M. Clark 09/22/2024, updated 09/22/2024
+# extract_highQual_sites.sbatch
+# M. Clark 09/22/2024, updated 10/8/2024
 
-# filter to retain high coverage individuals for EMR WGS project
-# retain individuals with 12X average genome-wide depth or greater
+# create position file with sites (or SNPs) that pass quality filtering 
 
 module purge
 module load powertools
@@ -24,11 +23,18 @@ module list
 
 bcftools --version 
 
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz # all variants VCF, high coverage individuals
-EXCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/windels/EMR_snps_in_deletions_nomaf_${SLURM_ARRAY_TASK_ID}.pos # excluding snps in deletions
-OUTPOS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_SNPs/EMR_highQual_varfilter_${SLURM_ARRAY_TASK_ID}.pos # get allsites varfilter
+# for variants:
+#VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz # all variants VCF, high coverage individuals
+#OUTPOS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_SNPs/EMR_highQual_varfilter_${SLURM_ARRAY_TASK_ID}.pos # get allsites varfilter
 
-bcftools view -H -f "PASS" -M2 -T ^"$EXCLUDE" -i 'INDEL=0 && N_PASS(GT[0,11,34,41,43,65,67,75,98,105,107,108,111,115,117,128,134,136,150,153,156,161,178,194,216]!="mis" & FMT/DP >= 10) >= 22 && N_PASS(GT[1,5,15,16,31,45,50,59,82,83,86,96,119,145,146,174,187,190,195,209,219,225,227]!="mis" & FMT/DP >= 10) >= 21 && N_PASS(GT[2,13,19,23,62,102,123,131,133,138,185,200]!="mis" & FMT/DP >= 10) >= 11 && N_PASS(GT[3,99,129,163]!="mis" & FMT/DP >= 10) >= 4 && N_PASS(GT[4,18,44,54,56,89,109,110,118,124,130,139,143,157,170,173,175,199,203,205,211,222,223]!="mis" & FMT/DP >= 10) >= 21 && N_PASS(GT[6,22,36,40,60,79,91,92,196]!="mis" & FMT/DP >= 10) >= 8 && N_PASS(GT[7,29,30,32,120,126,132,179,184,207]!="mis" & FMT/DP >= 10) >= 9 && N_PASS(GT[8,9,20,53,55,70,84,106,116,142,151,164,165,171,206,215]!="mis" & FMT/DP >= 10) >= 14 && N_PASS(GT[10,24,33,68,77,81,103,141,144,177,181,197,224]!="mis" & FMT/DP >= 10) >= 12 && N_PASS(GT[12,25,38,42,63,69,94,100,104,121,122,162,176,189,217,218]!="mis" & FMT/DP >= 10) >= 14 && N_PASS(GT[14,17,39,51,169,191,202,220]!="mis" & FMT/DP >= 10) >= 7 && N_PASS(GT[21,46,71,76,87,147,154,193]!="mis" & FMT/DP >= 10) >= 7 && N_PASS(GT[26,64,204]!="mis" & FMT/DP >= 10) >= 3 && N_PASS(GT[27,47,48,49,66,80,85,88,90,101,112,125,127,135,140,152,155,158,159,166,172,182,198,208,213]!="mis" & FMT/DP >= 10) >= 22 && N_PASS(GT[28,58,61,186]!="mis" & FMT/DP >= 10) >= 4 && N_PASS(GT[35,78,114,188,214]!="mis" & FMT/DP >= 10) >= 4 && N_PASS(GT[37,57,167]!="mis" & FMT/DP >= 10) >= 3 && N_PASS(GT[52,148,183]!="mis" & FMT/DP >= 10) >= 3 && N_PASS(GT[72,93,113,168,210,212]!="mis" & FMT/DP >= 10) >= 5 && N_PASS(GT[73,201]!="mis" & FMT/DP >= 10) >= 2 && N_PASS(GT[74]!="mis" & FMT/DP >= 10) >= 1 && N_PASS(GT[95,180,192]!="mis" & FMT/DP >= 10) >= 3 && N_PASS(GT[97,226]!="mis" & FMT/DP >= 10) >= 2 && N_PASS(GT[137]!="mis" & FMT/DP >= 10) >= 1 && N_PASS(GT[149]!="mis" & FMT/DP >= 10) >= 1 && N_PASS(GT[160]!="mis" & FMT/DP >= 10) >= 1 && N_PASS(GT[221]!="mis" & FMT/DP >= 10) >= 1' "$VCF" | perl -ne  '@tok = split(/\s+/,$_); if ($tok[7] =~ /REPGQ=(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),/) {print "$tok[0]\t$tok[1]\n" if ($1 >= 22 && $2 >= 21 && $3 >= 11 && $4 >= 4 && $5 >= 21 && $6 >= 8 && $7 >= 9 && $8 >= 14 && $9 >= 12 && $10 >= 14 && $11 >= 7 && $12 >= 7 && $13 >= 3 && $14 >= 22 && $15 >= 4 && $16 >= 4 && $17 >= 3 && $18 >= 3 && $19 >= 5 && $20 >= 2 && $21 >= 1 && $22 >= 3 && $23 >= 2 && $24 >= 1 && $25 >= 1 && $26 >= 1 && $27 >= 1);} else {print "$tok[0]\t$tok[1]\n";}' | uniq > "$OUTPOS"
+# for all sites:
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${SLURM_ARRAY_TASK_ID}.vcf.gz
+OUTPOS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_allsites/EMR_highQual_allsites_${SLURM_ARRAY_TASK_ID}.pos # get allsites varfilter
+
+EXCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/windels/EMR_snps_in_deletions_nomaf_${SLURM_ARRAY_TASK_ID}.pos # excluding snps in deletions
+
+bcftools view -H -f "PASS" -M2 -T ^"$EXCLUDE" -i 'INDEL=0 && N_PASS(GT[0,11,33,40,42,64,66,74,96,103,105,106,109,112,114,125,131,133,147,150,153,158,174,190,210]!="mis" & FMT/DP >= 10) >= 22 && N_PASS(GT[1,5,15,16,30,44,49,58,80,81,84,94,116,142,143,170,183,186,191,204,213,219,221]!="mis" & FMT/DP >= 10) >= 21 && N_PASS(GT[2,13,19,23,61,100,120,128,130,135,181,196]!="mis" & FMT/DP >= 10) >= 11 && N_PASS(GT[3,97,126,160]!="mis" & FMT/DP >= 10) >= 4 && N_PASS(GT[4,18,43,53,55,87,107,108,115,121,127,136,140,154,166,169,171,195,199,200,206,216,217]!="mis" & FMT/DP >= 10) >= 21 && N_PASS(GT[6,22,35,39,59,77,89,90,192]!="mis" & FMT/DP >= 10) >= 8 && N_PASS(GT[7,28,29,31,117,123,129,175,180,202]!="mis" & FMT/DP >= 10) >= 9 && N_PASS(GT[8,9,20,52,54,69,82,104,113,139,148,161,162,167,201,209]!="mis" & FMT/DP >= 10) >= 14 && N_PASS(GT[10,24,32,67,76,79,101,138,141,173,177,193,218]!="mis" & FMT/DP >= 10) >= 12 && N_PASS(GT[12,25,37,41,62,68,92,98,102,118,119,159,172,185,211,212]!="mis" & FMT/DP >= 10) >= 14 && N_PASS(GT[14,17,38,50,165,187,198,214]!="mis" & FMT/DP >= 10) >= 7 && N_PASS(GT[21,45,70,75,85,144,151,189]!="mis" & FMT/DP >= 10) >= 7 && N_PASS(GT[26,63]!="mis" & FMT/DP >= 10) >= 2 && N_PASS(GT[27,46,47,48,65,78,83,86,88,99,110,122,124,132,137,149,152,155,156,163,168,178,194,203,208]!="mis" & FMT/DP >= 10) >= 22 && N_PASS(GT[34,184]!="mis" & FMT/DP >= 10) >= 2 && N_PASS(GT[36,56]!="mis" & FMT/DP >= 10) >= 2 && N_PASS(GT[51,145,179]!="mis" & FMT/DP >= 10) >= 3 && N_PASS(GT[57,60,182]!="mis" & FMT/DP >= 10) >= 3 && N_PASS(GT[71,91,111,164,205,207]!="mis" & FMT/DP >= 10) >= 5 && N_PASS(GT[72,197]!="mis" & FMT/DP >= 10) >= 2 && N_PASS(GT[73]!="mis" & FMT/DP >= 10) >= 1 && N_PASS(GT[93,176,188]!="mis" & FMT/DP >= 10) >= 3 && N_PASS(GT[95,220]!="mis" & FMT/DP >= 10) >= 2 && N_PASS(GT[134]!="mis" & FMT/DP >= 10) >= 1 && N_PASS(GT[146]!="mis" & FMT/DP >= 10) >= 1 && N_PASS(GT[157]!="mis" & FMT/DP >= 10) >= 1 && N_PASS(GT[215]!="mis" & FMT/DP >= 10) >= 1' "$VCF" | perl -ne  '@tok = split(/\s+/,$_); if ($tok[7] =~ /REPGQ=(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),/) {print "$tok[0]\t$tok[1]\n" if ($1 >= 22 && $2 >= 21 && $3 >= 11 && $4 >= 4 && $5 >= 21 && $6 >= 8 && $7 >= 9 && $8 >= 14 && $9 >= 12 && $10 >= 14 && $11 >= 7 && $12 >= 7 && $13 >= 2 && $14 >= 22 && $15 >= 2 && $16 >= 2 && $17 >= 3 && $18 >= 3 && $19 >= 5 && $20 >= 2 && $21 >= 1 && $22 >= 3 && $23 >= 2 && $24 >= 1 && $25 >= 1 && $26 >= 1 && $27 >= 1);} else {print "$tok[0]\t$tok[1]\n";}' | uniq > "$OUTPOS"
+
 
 # Site extraction command breakdown:
 

@@ -25,9 +25,14 @@ module list
 bcftools --version 
 
 # define variables 
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/all_inds/EMR_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz # all sites, all inds VCF
-SAMPLES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/high_cov_inds.txt
-OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz
+# for variants:
+#VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/all_inds/EMR_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz # all sites, all inds VCF
+# for all sites:
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotated_vcf/EMR_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz # all sites, all inds VCF
+SAMPLES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/high_qual_inds.txt
+#for variants:
+#OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz
+OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${SLURM_ARRAY_TASK_ID}.vcf.gz
 
 # SAMPLES file is a list of individuals to retain in the output VCF, one name per line
 
