@@ -28,7 +28,8 @@ VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQua
 SAMP=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/roh_groups/${FILES[${SLURM_ARRAY_TASK_ID}]}.txt
 echo using $SAMP
 SAMPLES=$(cat $SAMP)
-OUTFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/allele_freqs/EMR_highQual_SNPs_nomaf_chrom_drop_${FILES[${SLURM_ARRAY_TASK_ID}]}_altAF.txt
+OUTFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/allele_freqs/EMR_highQual_SNPs_nomaf_chrom_drop_${FILES[${SLURM_ARRAY_TASK_ID}]}_altAF.tab.gz
+
 
 # calculate allele frequencies
 bcftools view -s $SAMPLES $VCF | bcftools +fill-tags -Ou -- -t all | bcftools query -f'%CHROM\t%POS\t%REF,%ALT\t%INFO/AF\n'| bgzip -c > $OUTFILE
