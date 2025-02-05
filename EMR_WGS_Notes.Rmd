@@ -1,0 +1,2753 @@
+---
+title: "EMR WGS Notes"
+author: "Meaghan Clark"
+date: "2024-08-21"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+editor_options: 
+  chunk_output_type: console
+---
+
+#### August 21st, 2024
+
+* Just got data back! 
+* Transfered to hpcc using globus
+* md5check sum verified successful transfer
+* Using `rename_rawReads_Fitz2024.sh` to rename files 
+  + Started 16:38, finished 16:54
+  + GRF_9_1.fastq.gz and GRF_9_2.fastq.gz are missing from renamed files 
+    + Correspond to "10686-MC-99" sequencing ID
+    + This was the last ID in `newWGS_ids.txt `
+    + Maybe the loop doesn't work for the last line? 
+    + I will fix by hand 
+      + `cp ./10686-MC-99_S99_R1_001.fastq.gz /mnt/scratch/clarkm89/EMR_WGS/rawData/Aug_reseq/GRF_9_1.fastq.gz`
+      + `cp ./10686-MC-99_S99_R2_001.fastq.gz /mnt/scratch/clarkm89/EMR_WGS/rawData/Aug_reseq/GRF_9_2.fastq.gz` 
+* Running fastqc using `wrapper-run_fastqc.sh`
+      
+#### August 22nd, 2024
+
+Goals: run multiqc on raw reads, trim reads, run fastqc and multiqc on trimmed reads
+
+* Running multiqc 
+  + sorted fastQC files into roughly even sub-dirs
+  + within each dir: 
+      + `module purge`
+      + `module load MultiQC/1.14-foss-2022b`
+      + `multiqc ./ --outdir ./ --filename Scat_Aug_multiQC_N`
+  + downloaded reports for August resequenced data to look at locally
+  
+* Trimming reads
+  + reviewing files: 
+    + `wrapper-trim_reads.sh`
+    + `trim_reads.sbatch` 
+    + array key: `rawData_FRcols.txt`: list of raw data with forward and reverse reads for the same individual on the same line
+    
+  + started 14:11 
+
+* Align to reference 
+  + Is reference prepared/indexed for alignment? 
+  + Update alignment scripts to account for 4 fastq files
+  
+  + going to split jobs into "paired" (ohio and OG Michigan samples), and "quad" (new Michigan samples that were sequenced twice) jobs
+    + the acception is that ELF_335 was an OG Michigan sample, but was sequenced twice, so should be included in the quad array key. 
+  + two array keys:
+    + `trimmed_reads_paired.txt` 
+    + `trimmed_reads_quad.txt`
+  
+  + index reference genome with bwa 
+    + getting `disk quota exceeded` error, even though we have 10 Tb! submitted help ticket to ICER 17:50 Thursday
+
+#### August 23rd, 2024
+* indexed reference genome on scratch directory
+  + can't transfer to reserach dir... still no response from ICER... 
+  
+* aligning to new 2024 Canada reference genome 
+  + two array jobs: one for Canada and OG Michigan samples (two fastq files) and one for the new Michigan samples (four fastq files) 
+  + started running 12:28 
+  + some paired jobs failed
+```
+/var/lib/slurmd/job42258378/slurm_script: line 16: module: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 17: module: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 18: module: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 19: module: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 20: module: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 59: bwa: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 68: samtools: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 74: samtools: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 77: samtools: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 80: samtools: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 83: samtools: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 86: samtools: command not found
+rm: cannot remove '/mnt/scratch/clarkm89/EMR_WGS/alignmentsTemp//ELF_390.sort.bam': No such file or directory
+rm: cannot remove '/mnt/scratch/clarkm89/EMR_WGS/alignmentsTemp//ELF_390.positionsort.bam': No such file or directory
+/var/lib/slurmd/job42258378/slurm_script: line 100: bam: command not found
+/var/lib/slurmd/job42258378/slurm_script: line 112: seff: command not found
+```
+
+    + 116: lac-401
+    + 122: skl-097
+    + 123: skl-097
+  
+  + starting to re-run these jobs by specifying these array numbers 
+  + okay, evidently you can't specify four fastq files for bwa mem
+    + align each pair of reads separately and process 
+    + merge at the end, and sort the bam files 
+  + editing `align_to_genome.sbatch` to incorporate read group information 
+    + started new jobs with read group info 16:20 
+      + original: `42272673`; resequencing: `` 
+  
+```{bash, echo = FALSE, eval = FALSE}
+# old code, keeping here for record of how I constructed the if statement
+line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
+
+if echo $ARRAY_KEY | grep -q quad; then
+	IFS=$'\t' read -r FORWARDREAD REVERSEREAD FORWARDREAD2 REVERSEREAD2 <<< "$line"
+        BASE=$(basename "$FORWARDREAD")
+        SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
+
+        # text for troubleshooting
+        echo using $REFERENCE 
+        echo trying to locate files $FORWARDREAD and $REVERSEREAD and $FORWARDREAD2 and $REVERSEREAD2
+        echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
+
+        #run bwa 
+        # for two sets of paired fastq files:
+	bwa mem -t $CPUS $REFERENCE $FORWARDREAD $REVERSEREAD $FORWARDREAD2 $REVERSEREAD2 > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+
+
+elif echo $ARRAY_KEY | grep -q paired; then
+	IFS=$'\t' read -r FORWARDREAD REVERSEREAD <<< "$line"
+	BASE=$(basename "$FORWARDREAD")
+	SAMPLE_NAME=$(echo "${BASE}" | cut -d "_" -f 1,2 | cut -d "." -f 2)
+	
+	# text for troubleshooting
+	echo using $REFERENCE 
+	echo trying to locate files $FORWARDREAD and $REVERSEREAD
+	echo I will put the output in ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam 
+	
+	#run bwa 
+	# for two sets of paired fastq files:
+	bwa mem -t $CPUS $REFERENCE $FORWARDREAD $REVERSEREAD > ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.sam
+
+else
+	echo Your array key is not for paired or quaded files... whats up with that? 
+fi
+
+```
+  + error in trimming adapters off of resequence data, bug in code, fixed and rerunning jobs to trim resequenced data 16:29 
+    + a few jobs randomly didn't work `/var/lib/slurmd/job42275520/slurm_script: line 9: fastp: command not found`
+    
+      + 90: lac-044
+      + 91: lac-337
+      + 92: lac-337
+      + 93: lac-420
+      + 94: lac-420
+      + 99: lac-363
+      + 102: lac-402
+      + 107: lac-380
+      + 108: lac-380
+      + 114: lac-363
+      + 115: lac-402
+    + 90,91,92,93,94,99,102,107,108,114,115,116,117,118,121,122,128,129,130,131,132,145,148,149,150,151,152,153,155,157,158,159,160,161,162,163,171,172,175,180,184,185,188,190,191,192 
+    + this accounts for the missing .html output of fastp, but there is an odd number (315) of fastq.gz files, when there should be an even number of all jobs completed. 157 forward read files, 158 reverse read files 
+    + ah, okay, some of the files from the last run are still here
+    `find /path ! -newermt "2024-08-23 00:00:00" | xargs rm -rf`
+    + some files still didn't run: 
+      + 171,172,175,180,184
+      + all failed on lac-300
+  
+  + error `[E::bwa_set_rg] the read group line is not started with @RG`
+    + this has something to do with alignment code, taking a look.. 
+    + My $readgroup starts with quotes intead of @RG. I edited my file to match Tyler's code. Restarted alignment jobs with original sequencing files to see if that fixes the problem. 
+  + some alignment jobs failed, probably because of the same issues as previous god damn it. 
+    + 98,108,109,116,131,167,168,169,184,185,234,260,265,276,290
+    + lac-428,lac-407,lac-409,lac-426,lac-424,skl-038,lac-337,
+    
+    + failed again and restarted... 23:15
+      + 98,108,167,168,169
+      
+* Issues indexing reference genome: it looks like some of the files are "owned" by ibio instead of Fitz_Lab. I have no idea why this would be. 
+  + fixing? using `find /mnt/research/Fitz_Lab/ref/massasauga/EMR_ref_2024/GCA_039880765.1 -not -group Fitz_Lab -print0 | xargs -0 chgrp Fitz_Lab` from [here] (https://docs.icer.msu.edu/Research_Space/#using-a-research-space)
+  + trying to index the research dir version of the reference in tmux window "index"
+
+#### August 25th, 2024
+
+* Checking trimming of resequenced files that were being re-run (42305300)
+  + All completed with reasonable time/resources! 
+  
+* Checking alignment of original files (first job: 42287810, first rerun: 42307459, second rerun: 42307622)
+  + 234 ran out of memory at the very end... 
+  + 290 had mystery node issue (skl-073)
+  + 276 only took 5.75 hours.. investigate --> looks fine
+  + 116 only took 7 hours... investigate --> looks fine 
+  + 243 alignment files in ./align_orig, should be 320
+  + actually way more jobs from the original run failed b/c out of memory than I thought! 
+    + 194,195,196,197,198,199,200,201,202,203,205,206,209,211,212,213,214,215,216,217,218,220,222,225,226,229,230,231,233,235,236,237,238,239,242,243,244,246,248,249,250,251,252,253,254,255,256,257,258, 262,263,264,266,267,268,269,272,273,275,279,280,281,283,284,286,287,288,289,294,295,297,298,299,300,301,303,306,308,318
+  
+  + restart: 194,195,196,197,198,199,200,201,202,203,205,206,209,211,212,213,214,215,216,217,218,220,222,225,226,229,230,231,233,234,235,236,237,238,239,242,243,244,246,248,249,250,251,252,253,254,255,256,257,258, 262,263,264,266,267,268,269,272,273,275,279,280,281,283,284,286,287,288,289,290,294,295,297,298,299,300,301,303,306,308,318
+    + all running on amr-107
+    
+* Start alignment of resequenced files 
+  + started 17:07
+  + should check in ~ 60 minutes to see what jobs were sent to bad nodes 
+  + 6,19,34,49,65,79,94,109,110,124,139,154,162,178,187,188,189
+  + check 110 (failed),141 (ok)
+
+#### August 26th, 2024
+
+* Checking alignment of resequenced files 
+  + all restarted jobs from last night look successful 
+  + did any additional jobs fail from the original job (42375569)? I think I caught them all last night! 
+  + 181 trim.bam files in output dir
+  + 192 aln-pe.bams in alignmentsTemp dir (correct number)
+  + ex: ATL_2 has aln-pe.bam and fixmate.bam, but nothing else in alignmentsTemp
+    + array job no. 5 
+  
+* Checking alignment of originally sequenced files
+  + 254 trim.bam files in output dir 
+  + 257 rmdup.bams in alignmentsTemp
+  + 320 aln-pe.bams (correct number)
+
+* Some alignment jobs didn't proceed with filtering because disk quota was exceeded 
+  + write job to go from aln-pe.bam to trimmed bam 
+  + but it looks like some jobs ran out of disk space when doing aln-pe, and still proceeded with downstream steps without throwing an error...  (e.g. align_reseq_08252024_42375569-143.err)
+  + so I need to re-do all alignments? 
+    + `grep -l "Disk quota exceeded" *.err` YES a lot returned disk quota exceeded 
+  + I think I should pipe output between samtools commands, keeping only the aln-pe, rmdup, and final outputs?
+  
+* Restarting alignment jobs to eliminate un-needed intermediate files
+  + starting one test job to evaluate resource use and make sure code works
+  
+```{bash, eval = FALSE}
+
+module purge
+module load BWA/0.7.17-20220923-GCCcore-12.3.0
+module load SAMtools/1.18-GCC-12.3.0
+module load powertools
+module list 
+
+# code in file 
+samtools sort -n ${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam | \
+samtools view -f 0x2 - | \
+samtools fixmate -m - | \
+samtools sort -o - | \
+samtools markdup -r - > ${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam 
+
+# code to test
+samtools sort -n ./GRF_4.aln-pe.bam | \
+samtools view -f 0x2 - | \
+samtools fixmate -m - | \
+samtools sort - | \
+samtools markdup -r - -o ./GRF_4.rmdup.bam 
+
+# corrected code for jobs:
+samtools sort -n ./${SCRATCHNODE}/${SAMPLE_NAME}.aln-pe.bam | \
+samtools view -f 0x2 - | \
+samtools fixmate -m - - | \
+samtools sort - | \
+samtools markdup -r - ./${SCRATCHNODE}/${SAMPLE_NAME}.rmdup.bam  # works! probably! 
+
+# unsure if "samtools view" should have -h 
+
+samtools sort -n ./GRF_4.aln-pe.bam | \
+samtools view -h -f 0x2 - | \
+samtools fixmate -m - - | \
+samtools sort - | \
+samtools markdup -r - ./GRF_4.rmdup.bam  
+
+```
+  + I'm not sure this code works, but it will take 12+ hours to align all the individuals. If processing the bam files fails, I can create a new script to restart just that step. This should avoid wasting my sleeping hours! 
+   + jobs for original and resequencing started! Will check in the morning
+
+#### August 27th, 2024
+
+* It looks like alignment jobs did the bwa mem part, but not the bam filtering part because of the "./" I left in the code above...
+* all unfiltered bam output is present, but some jobs didn't take very long... suspicious... 
+  + resequencing: 119,121,124,125,130,134,135,137,139,144,146,148,149,157,165,168,171,178,179,181,183,184,185,191,192
+    + 4 hours: 140, job completed
+  + original: none failed with "mysterious node issues"
+
+* While waiting for alignments to finish: 
+  + write and prep "bam processing" scripts that will process the raw bam files 
+    + edit so that unpaired reads are not thrown out, but marked 
+    + done! 
+  + make array key `bams_to_merge.txt` done! 
+  + write scripts to call snps, dealing with haploid chromosomes
+    
+  + inbreeding paper stuff 
+  
+* Craft scripts to merge bams for resequenced individuals 
+  + changing script so that `merge_bams.sbatch` and wrapper are for merging bam files per individual
+  + old `merge_bams.sbatch` which creates a megabam for bamstats is now called `merge_2_MEGAbam.sbatch`
+  + after alignments are done, should transfer alignments that don't need merging to a separate dir
+  
+* Preparing to call SNPS
+  + decisions to make: 
+    + Chromlist-- how to split up genome? 
+      + in 200 pieces! 
+    + How to rename samples during mpileup? 
+    + Should I use a groups file? 
+      + pros: technically correct, more likely to call rare variants that aren't found elsewhere
+      + cons: perhaps more false hets  
+      + Not using groups flag to decrease false calling of rare variants, especially given that we have some populations with small sample sizes 
+      + if high sample size in all populations (>20), use groups; if some populations have lower sample size (<10), prior isn't going to be that good because allele frequency estimates won't be that good 
+      + not using groups, perhaps under-calling rare variants, but allele frequency estimates for small sites wouldn't be good anyway... so better to use a more informed prior  
+      + -S in mpileup will rename samples
+
+#### August 28th, 2024
+
+* Checking alignment jobs:
+  + Looks good! yay! 
+* Starting bam processing jobs! 
+  + had to restart due to sketchy  NODE_FAIL issues
+  + temporary output is being directed to the reserach directory where the jobs were started from. This seems weird to me, but is perhaps normal? Hopefully there is enough space for them. 
+  + original jobs failed due to "mystery node issues" and should be restarted: 75
+* Accidentally deleted log files in /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/align_orig
+  + worth trying to get back? 
+  + Nope, ICER can't get them back. Oh well. 
+
+* restarted alignment filter jobs with more CPUs (17) and memory (40G)
+
+* Getting the sex of sequenced individuals to call Z chrom
+  + a non-trivial proportion do not have sex information
+  + could get sex from ratios of coverage, but maybe that is a project for later... 
+  + changes to calling snps call:
+    + rename samples in mpileup
+    + no groups (keep trehe same)
+    + ploidy file for mtDNA
+    + hold off on calling Z chromosome
+
+#### August 29th, 2024
+
+* Alignment filtering is complete: 
+* `samtools coverage $bam` results:
+  + THR_9.trim.bam resequencing: \
+| #rname	startpos	endpos	numreads	covbases	coverage	meandepth	meanbaseq	meanmapq
+| CM078115.1	1	343906952	23663935	340786286	99.0926	8.15651	38.8	54.3
+  + THR_9.trim.bam original: \
+| #rname	startpos	endpos	numreads	covbases	coverage	meandepth	meanbaseq	meanmapq
+| CM078115.1	1	343906952	52765029	341969253	99.4366	12.2611	38.4	53.3
+  + merged THR_9: 
+| #rname	startpos	endpos	numreads	covbases	coverage	meandepth	meanbaseq	meanmapq
+| CM078115.1	1	343906952	76428964	342388509	99.5585	20.4176	38.6	53.6
+
+* should check (1) read overlap in all samples and (2) bam coverage once next step is running
+
+* next step: merge bams from original and resequenced individuals
+  + script will merge new Michigan bams, and the two ELF_335 bams. I will need to manually rename the ELF_335 output 
+
+##### Overlap reports
+
+```{bash, eval = FALSE}
+OVERLAP_REPORT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/overlap_report_reseq_newRef.txt
+
+echo "filename,no_overlap_pairs,avg_bases_overlap,var_bases_overlap,or_caused_clip,forward_clip,rev_clip" > $OVERLAP_REPORT
+
+for file in ./*.err; do
+    # Extract filename
+    filename=$(basename "$file")
+    
+    # Extract N from line 8 and K from line 14
+    no_overlap_pairs=$(awk 'NR==15 {print $5}' $file)
+    avg_bases_overlap=$(awk 'NR==16 {print $6}' $file)
+    var_bases_overlap=$(awk 'NR==17 {print $6}' $file)
+    or_caused_clip=$(awk 'NR==18 {print $8}' $file)
+    forward_clip=$(awk 'NR==19 {print $9}' $file)
+    rev_clip=$(awk 'NR==20 {print $9}' $file)
+
+    # Append the results to the output file
+    echo "$filename,$no_overlap_pairs,$avg_bases_overlap,$var_bases_overlap,$or_caused_clip,$forward_clip,$rev_clip" >> $OVERLAP_REPORT
+done
+```
+ 
+* repeated for both original and resequenced data
+* results downloaded for analysis in `reseq_overlap.R`
+
+* also need mapping reports! to get % of reads that were overlapping 
+  + edited `calc_map_stats.sbatch` and started jobs for original and resequenced alignments 
+  
+##### Calling variants
+
+* make list of bams to call snps 
+  + include merged bams for new Michigan individuals [DONE]
+  + trimmed bams for OG Michigan and Ohio samples [DONE]
+  + drop low quality individuals from list of bams to use to call SNPs 
+* edit call SNPs file to use a samples file 
+
+* I moved final Ohio and OG Michigan alignment bams to the dir "final" with the merged Michigan bams 
+  + 319 `.bam` files total
+  + Making list of final bams for calling SNPs `find "$(pwd)" -name "*.bam"`
+    + EXCLUDE low quality individuals 
+    		+ KBPP_sca0242 
+	 	    + KBPP_sca0144 
+	    	+ KBPP_sca0180 
+	    	+ ROME_sca0713 
+		    + ROME_sca1395 
+        + SSSP_sca0979 
+  + made new chrom_200 dir 
+    + to find chromosome names in a fasta reference genome: `grep "^>"`
+  + made a samples file 
+  
+```    
+-S, --samples-file FILE
+file of sample names to include or exclude if prefixed with "^". One sample per line. This file can also be used to rename samples by giving the new sample name as a second white-space-separated column, like this: "old_name new_name". If a sample name contains spaces, the spaces can be escaped using the backslash character, for example "Not\ a\ good\ sample\ name".
+```
+  + Might need to include -S flag in bcftools call and mpileup
+    + I believe without this flag, or without the second column for sex info in the samples file for bcftools call, all individuals will be treated as female, which is fine for all by the Z chromosome. I will eventually need to re-call the Z chromosome. If an error is thrown, I think I need to supply a -S flag in bcftools call 
+    + for now, I will exclude the Z chromosome from 
+    + **CM078132.1 is the Z chromosome**
+    + **NOT CALLING SNPS ON Z RIGHT NOW**
+
+#### August 30th, 2024
+
+* Several issues with calling variants:
+  + I was re-indexing all bam files with every job. I just need to index them once! 
+  + Some jobs failed due to mysterious node issues
+    + ICER suggests only using amd nodes using: `--constraint=NOAUTO:[amr\|acm]`
+  + Other jobs failed with this error: 
+```{bash, eval = FALSE}
+[mpileup] failed to find a file header with usable read groups
+Failed to read from standard input: unknown file type
+Failed to read from standard input: unknown file type
+[E::hts_open_format] Failed to open file "/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_13.bcf.gz" : No such file or directory
+Couldn't open "/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_13.bcf.gz": No such file or directory
+
+```
+
+* Accidentaly deleted final alignment files! Bah! 
+  + need to re-merge new Michigan samples
+    + restarted 11:29 `42894175`
+  + need to re-filter alignments for Ohio and OG Michigan samples 
+    + I have the rmdup.bam files, so I just need to trim read overlap from those input files 
+    + altered `filter_bams.sbatch` so that just trim overlap is run 
+    + making new array key `trimmed_reads_rerun.txt` that just contains OH and OG MI samples 
+    + restarted 11:35 `42894811`
+    + mystery node issues: 31,32
+      + restarted `42902239` 
+  + While those are running, I can troubleshoot call_snp issues
+
+* Index all final .bam files using: 
+```{bash, eval = F}
+# try on a dev node?
+while read -r bam_file; do
+    samtools index "$bam_file"
+done < $LIST_OF_BAMFILES
+```
+
+* add `source /etc/profile` to call_snps.sbatch to help troubleshoot mystery node issue?
+
+* Trying to index trim.bam in bam_flt_rerun using: 
+
+```{bash, eval = F}
+# try on a dev node?
+for bamfile in ./*.bam; do samtools index "$bamfile"; done
+```
+
+* That is going to be too slow! Writing scripts to do it in parallel 
+
+#### August 31st, 2024
+
+* Job finished running... all .bam files have associated .bai files 
+* some index jobs failed... 
+  + 108,111,
+  + associated with: 
+    + /mnt/scratch/clarkm89/EMR_WGS/alignments/bam_flt_rerun/BPNP_Sca549.trim.bam
+    + /mnt/scratch/clarkm89/EMR_WGS/alignments/bam_flt_rerun/SPVY_sca1023.trim.bam
+* but! I was accidently indexing ALL files in list with each job... instead of one file per job... whoops
+* Anyway, done indexing, now I need to transfer all final bam files to "final" 
+  + done! 
+
+* testing call_snps to see what the issue is 
+  + I think the issues is that the merged `.bam` files have two @RG lines? 
+    + testing by making a bam_list file with just unmerged files 
+    + Nope, that is not it
+  + My @RG doesn't have "LB" tag
+    + whoops, that was a mistake back when I initially aligned reads to the genome
+    + I think it's too late to re-do that step
+    + I can, for each individual: 
+      1) extract the head from each bam and make header file 
+      `samtools view -H yourfile.bam > header.sam`
+      2) extract library information from fastq file
+      3) add library information to header file 
+      4) replace the header in the bam file with edited header
+      `samtools reheader header.sam yourfile.bam > newfile.bam`
+  + first, does adding library  info fix mpileup? 
+    + verify with test file, added LB:TEST to header
+```{bash, eval = FALSE}
+# testing code 
+samtools view -H JENN_Sca917.trim.bam > JENN_Sca917_header.sam
+# added LB:TEST to @RG and @PG
+samtools reheader JENN_Sca917_header.sam JENN_Sca917.trim.bam > JENN_Sca917.trim.TEST.bam
+
+ls *.TEST.bam > test_bamlist.txt
+
+LIST_OF_BAMFILES=/mnt/scratch/clarkm89/EMR_WGS/alignments/test/test_bamlist.txt
+```
+  + Hmmm... this still gives the same error 
+  + checking .bam with `samtools quickcheck -vv JENN_Sca917.trim.bam ` no errors found 
+  + trying with minimal options: `bcftools mpileup -f $REFERENCE JENN_Sca917.trim.bam`
+      + that seemed to perhaps work
+
+  
+```{bash, eval = FALSE}
+
+bcftools mpileup \
+ -f $REFERENCE \
+ -b $LIST_OF_BAMFILES  #WORKS
+
+bcftools mpileup \
+ -f $REFERENCE \
+ -b $LIST_OF_BAMFILES \
+ -R $CHROMLIST \ # WORKS
+ 
+bcftools mpileup \
+ -f $REFERENCE \
+ -b $LIST_OF_BAMFILES \
+ -R $CHROMLIST \
+ -S $SAMPLE_NAMES \ # THROWS ERROR
+
+ bcftools mpileup \
+ -f $REFERENCE \
+ -b $LIST_OF_BAMFILES \
+ -R $CHROMLIST \
+ -C 0 \
+ -d 10000 \
+ -L 10000 \
+ -q 20 \
+ -Q 13 \
+ --ns "UNMAP,SECONDARY,QCFAIL,DUP" \
+ -a "FORMAT/AD,FORMAT/DP,FORMAT/QS,FORMAT/SP,FORMAT/SCR,INFO/AD,INFO/SCR" \
+ -p \
+
+ # WORKS WITHOUT -S TAG... 
+
+# full testing code 
+module purge
+module load powertools
+module load BCFtools/1.19-GCC-13.2.0
+module list 
+
+REFERENCE=/mnt/scratch/clarkm89/EMR_ref_2024/GCA_039880765.1/GCA_039880765.1_rSisCat1_p1.0_genomic.fna
+LIST_OF_BAMFILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/final_bam_list.txt
+CHROMLIST=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200/chrom_list_1.txt
+SAMPLE_NAMES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/final_bam_sample_names.txt
+
+ bcftools mpileup \
+ -f $REFERENCE \
+ -b $LIST_OF_BAMFILES \
+ -R $CHROMLIST \
+ -S $SAMPLE_NAMES \
+ -C 0 \
+ -d 10000 \
+ -L 10000 \
+ -q 20 \
+ -Q 13 \
+ --ns "UNMAP,SECONDARY,QCFAIL,DUP" \
+ -a "FORMAT/AD,FORMAT/DP,FORMAT/QS,FORMAT/SP,FORMAT/SCR,INFO/AD,INFO/SCR" \
+ -p \
+ -O b
+# throws [mpileup] failed to find a file header with usable read groups
+
+LIST_OF_BAMFILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/test_bam_list.txt
+
+```
+
+* It seems like the -S flag in mpileup is causing the `[mpileup] failed to find a file header with usable read groups` error
+  + Is mpileup expecting that the ID section of the @RG will match the sample ID? 
+* I will proceed without -S flag, and rename individuals in the resulting .bcf files in the next step 
+  + I will try to pipe bcftools call output to bcftools reheader 
+
+* call_snps jobs failed with error: 
+```{bash, eval = FALSE}
+[E::hts_open_format] Failed to open file " " : No such file or directory
+Failed to read from  : No such file or directory
+[mpileup] 314 samples in 313 input files
+[mpileup] maximum number of reads per input file set to -d 10000
+Warning: Potential memory hog, up to 3130000M reads in the pileup!
+/var/lib/slurmd/job42986156/slurm_script: line 65: --: command not found
+[E::bcf_hdr_read] Input is not detected as bcf or vcf format
+Failed to read the header: -
+/var/lib/slurmd/job42986156/slurm_script: line 68: -o: command not found
+[E::hts_open_format] Failed to open file "/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_16.bcf.gz" : No such file or directory
+Couldn't open "/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_16.bcf.gz": No such file or directory
+
+# troubleshooting: 
+
+REFERENCE=/mnt/scratch/clarkm89/EMR_ref_2024/GCA_039880765.1/GCA_039880765.1_rSisCat1_p1.0_genomic.fna
+LIST_OF_BAMFILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/final_bam_list.txt
+CHROMLIST=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200/chrom_list_1.txt
+SAMPLE_NAMES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/final_bam_just_sample_names.txt
+
+ bcftools mpileup \
+ -f $REFERENCE \
+ -b $LIST_OF_BAMFILES \
+ -R $CHROMLIST \
+ -S $SAMPLE_NAMES \
+ -C 0 \
+ -d 10000 \
+ -L 10000 \
+ -q 20 \
+ -Q 13 \
+ --ns "UNMAP,SECONDARY,QCFAIL,DUP" \
+ -a "FORMAT/AD,FORMAT/DP,FORMAT/QS,FORMAT/SP,FORMAT/SCR,INFO/AD,INFO/SCR" \
+ -p \
+ -O u
+
+# This works locally, so issue is something with the definitions of files in the script
+# wait, this also worked with -S flag... just with samples file with just new names, not new/old names... 
+
+``` 
+
+* restarted with -S flag in mpileup with `final_bam_just_sample_names.txt` and no reheader, and jobs seem to be running! 
+    + 42986901
+* later: going to cancel 42986901 and restart, with added -nu "PAIR" flag to bcftools mpileup
+  + this should only use properly mapped pairs of reads 
+  + should confirm with Tyler on Monday this is doing what I think it is doing
+  + new job: 43002555
+  
+* also starting job to merge bams into MEGABAM!   
+  + 43003182
+  
+#### September 1st, 2024
+
+* some call snps jobs failed with mystery node issues
+  + 121,125,129,130,134,139,144,147,151,154,159,163,165,166,167,168,173,174,179,180,181,184,185,189,190,193,194,195,198
+  + re-running with `source /etc/profile` jobid 43027287
+* some completed in less than 9 hours:
+  + 113,116,117,118,162,164 (+ more)
+
+* MEGA bam job failed with: 
+```{bash, eval = FALSE}
+[E::hts_open_format] Failed to open file "/mnt/scratch/clarkm89/EMR_WGS/bamstats/EMR_mega.bam" : No such file or directory
+samtools merge: failed to create "/mnt/scratch/clarkm89/EMR_WGS/bamstats/EMR_mega.bam": No such file or directory
+[E::hts_open_format] Failed to open file "/mnt/scratch/clarkm89/EMR_WGS/bamstats/EMR_mega.bam" : No such file or directory
+samtools index: failed to open "/mnt/scratch/clarkm89/EMR_WGS/bamstats/EMR_mega.bam": No such file or directory
+
+# did not make "bamstats" dir in scratch? 
+```
+* all running as of 11:14! 
+
+* Extract total number of read pairs from mapping_stats output
+
+```{bash, eval = FALSE}
+echo "Filename,N,K,avg_qual" > ../../mapping_reads_report_orig.txt
+
+# Loop through all files in the directory
+for file in ./*_mapping_stats.txt; do
+    # Extract filename
+    filename=$(basename "$file")
+    
+    # Extract N from line 8 and K from line 14
+    N=$(awk 'NR==8 {print $5}' $file) # raw total sequences
+    K=$(awk 'NR==14 {print $4}' $file) # reads mapped
+    avg_qual=$(awk 'NR==39 {print $4}' $file)
+
+    # Append the results to the output file
+    echo "$filename,$N,$K,$avg_qual" >> ../../mapping_reads_report_orig.txt
+done
+
+```
+
+#### September 3rd, 2024
+
+* checking job output 
+  + we've got SNPs!!! 
+* Now, merge bcf files into MEGABCF on scratch so that I can normalize by scaffold (one job per scaffold)
+  + modifying `merge_bcf.sbatch`
+  + remake `bcf_chrom_list.txt` 
+    + `find "$(pwd)" -name "*.bcf"`
+    + do chrom_200 bcf files need to be in numerical order in the key? I think probably. 
+      + `%s/.*\/EMR_WGS_\(\d\+\)\.bcf\.gz/\1 &/` # add column to the left of file path that is N
+      + `sort n`    # sort based on N
+      + `%s/^\d\+ //`    # delete first column, leaving the sorted file paths
+  + started jobid `43197916`
+
+* job merging bcf files should be done soon! 
+  + next step: normalize big bcf in chunks
+  + need to create directory of region files where files define scaffolds 
+    + I think file can just be scaffold names without position information
+
+* scaffold files should be done soon! 
+  + 21 files, each containing at least one chromosome name for normamlizing variants 
+  
+* started normalization jobs! jobid `43258844`
+
+#### September 4th, 2024
+
+* normalization jobs completed! 
+* Looks like megaBAM job is going to run out of time and fail... 
+  + arg, it's SO close!!! oh well 
+  + I should restart with even more resources 
+  + I don't think more resources are going to help...
+  + restarted: `43323055`
+
+* now that normalization is done, the next step is to run vcfstats 
+  + output will be merged, so it doesn't matter if this is done in chrom_200 and bamstats in done in scaffolds
+  + first step: merge normalized bcf files into a single norm bcf
+
+* start VCFstats when calling snps finishes 
+* want scaffolds to be continuous to run bcftools norm (can do in parallel)
+* very confusing: I named script to run bcftools stats `run_vcf_stats.sbatch`, but this is NOT associated with the vcf_stats step of pipeline! 
+* vcf_stats_summary script: can IN_LIST contain multiple vcfstats reports? 
+  + yes, it can! 
+
+* making `bcf_norm_list.txt`
+  + `find "$(pwd)" -name "*.bcf.gz"`
+  + `%s/.*\/EMR_WGS_byScaf_norm_\(\d\+\)\.bcf\.gz/\1 &/`
+  + `sort n`
+  + `%s/^\d\+ //`
+* merging normalized bcfs `43359304`
+* next: run vcftstas using merged bcf, but can do with chrom_200 regions
+
+#### September 5th, 2024
+
+* merging normalize bcf jobs done! Now I need to run vcfstats
+* ran vcfstats! ran super quickly! 
+* making `vcfstats_list.txt` which is a txt file containing full file path to merged vcfstats file 
+  + `find "$(pwd)" -name "*.vcfstats" > ../../../scripts/keys/vcfstats_list.txt`
+
+#### September 6th, 2024
+
+* had to restart mega bam job because of likely hpcc issue grrr... `43521062`
+* vcfstats is still running
+
+#### September 7th, 2024
+
+* vcfstats finished running! 
+
+
+#### September 8th, 2024
+
+* merging bams is still running grrrr
+
+#### September 10th, 2024
+
+* merging bams is done!!! lets goooooo
+* review files to run bamstats
+  + need to convert -R key files to work with -r?
+    + e.g.: `Scate-ma2:252610534-259838238` within txt file, where filename contains slurm array id
+
+```{bash, eval = FALSE}
+for i in {1..200}; do
+  # Read the input file and reformat each line
+  awk '{print $1":"$2"-"$3}' chrom_list_"$i".txt > ../chrom_200_r/chrom_list_region_"$i".txt
+done
+
+```
+
+* submitted! `43617167`
+
+#### September 11th, 2024
+
+* bamstats is done! 
+* merge all bamstats files using `merge_bamstats.sbatch`
+  + need to replace list of files 
+  + `find "$(pwd)" -name "*.bamstats" > bamstats_list.txt` 
+  + add `\` to the end of each line
+    + `%norm A \`
+  + sort by number
+    + `find "$(pwd)" -name "*.bamstats"`
+    + `%s/.*\/EMR_all_qc_\(\d\+\)\.bamstats/\1 &/`
+    + `sort n`
+    + `%s/^\d\+ //`
+  + job started `43651905`
+
+* started job to summarize bamstats output: `43656701`
+  + `sum_bamstats.sbatch`
+  + fixed depth histogram in `qualSummaryStats.R`
+  + `awk '{print $3}' ./EMR_ALL_qc_ordered.bamstats > EMR_ALL_qc_depth.bamstats` to isolate depth
+  + job id `43681838`
+  
+* can prepare next steps now: 
+  + generate masks! 
+  
+#### September 12th, 2024
+
+* `merge_bamstats.sbatch` finished running, but xlim was too small for updated depth! I will rerun with just depth
+* use `bamstats_depth.sh`
+  + updated `qualDepth.R`
+  + isolate depth column of bamstats file 
+* Update `gen_masks.sh` --> get bed files for annotated sites
+  + runs first
+  + jobid `43693398`
+  + done! how should I summarize reports? 
+* Update `annotateVCF.sh` --> add annotations and output VCF files
+  + update EMR_groups_qc.txt 
+    + is the file from the last run correct? NO
+    + updating using `make_groups.R` and `bcf_sample_order.txt`
+  + going to get depth cut offs from vcfstats: again, 0.5X and 1.5X, 2587 and 7761
+  + running `43699312`
+* mt genome will have super high depth, and I will want to process it separately with different depth cut offs
+  + The mt genome is in: `chrom_list_region_200.txt`
+
+#### September 13th, 2024
+
+* Genome annotations are finished! Next steps: (1) generate all sites mask (positions of all PASS sites), (2) extract variant sites that pass QC without a maf
+  + can run concurrently? 
+  + From all PASS variants files, I can get general summary stats and make a position file for SNPs in indels
+  + Then, I take the position file for SNPs in indels, and extract the positions of PASS sites, excluding SNPs in indels, and implement depth cut offs per population and genotype quality. \
+
+
+**Remaining data processing steps:**\
+(1) generate all sites mask (positions of all PASS sites)
+**`extract_all_sites.sbatch` and `wrapper-extract_all_sites.sh`**
+* renamed from `extract_all_variants.sbatch` and `wrapper-extract_all_variants.sh` because this keeps monomorphic sites 
+* output `EMR_qc_allsites_${SLURM_ARRAY_TASK_ID}.pos`
+*  edit filtering line such that 90% of individuals in each population have at least 15 reads
+* job id `43735272`
+  + running into mystery node issues: 
+    + 48,85,94,113,115,118,119,125,130,143,156,157,161,167,170,173,176,178,180,183,184,186,187,188,196,198,199,200
+    + check 118,119,189,
+    + waiting until all 200 jobs start to re-run with troubleshooting code added to sbatch script
+    + rerun id `43741617`
+* some jobs failed with error: 
+```{bash, eval = FALSE}
+Failed to read from /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotated_vcf/EMR_annotated_48.vcf.gz: unknown file type
+```    
+* maybe annotation jobs failed, and these failures and the failures below are a mix of mystery job issues and issues with the annotation
+  + hmmm spot checking this doesn't check out
+
+(2) extract *variant* sites that pass QC without a maf
+**`extract_variants_no_maf.sh`**
+* uses `extractVariants.pl` to extract variant sites 
+* input is annotated VCF
+* output is nomaf variant sites VCF
+* job id `43735798`
+  + mysterious node issues, perhaps, but different error message this time. Similar in that only some jobs failed with this message
+    + 48,85,113,130,143,156,161,167,170,173,176,178,180,183,184,186,187,188,196,198,199,200
+    + waiting until all 200 jobs start to re-run with troubleshooting code added to sbatch script
+    + rerun id `43741595`
+    
+```{bash, eval = FALSE}
+Use of uninitialized value $line in pattern match (m//) at /mnt/research/Fitz_Lab/projects/posk/variants/vcf/scripts/extractVariants.pl line 236, <GEN0> line 13.
+Use of uninitialized value $hline in print at /mnt/research/Fitz_Lab/projects/posk/variants/vcf/scripts/extractVariants.pl line 77, <GEN0> line 13.
+Use of uninitialized value $chr in concatenation (.) or string at /mnt/research/Fitz_Lab/projects/posk/variants/vcf/scripts/extractVariants.pl line 208, <GEN0> line 13.
+```
+* my script is calling Tyler's posk version of extractVariants.pl
+  + could this matter? 
+  + change to my EMR version (which I don't think I've changed?)
+  + loading perl module explictly 
+  + restarting all array jobs, job id `43741758`
+    
+* Annotation issues
+  + something went wrong during annotation
+  
+``` {bash, eval = FALSE}
+[E::hts_open_format] Failed to open file "CM078116.1:1-2557067" : Protocol not supported
+Failed to read from CM078116.1:1-2557067: Protocol not supported
+Indexing bed file
+Use of uninitialized value $hline in pattern match (m//) at /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/insertAnnotations_emr.pl line 269.
+Use of uninitialized value $hline in split at /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/insertAnnotations_emr.pl line 329.
+Use of uninitialized value $hline in print at /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/insertAnnotations_emr.pl line 352.
+Annotating VCF
+
+```
+  + Because the annotated VCF is empty/messed up, the downstream jobs are also messed up! 
+  + Some jobs are also failing due to mysterious node issues, making this more difficult to detect! 
+  + Ah! some chrom_200_r files have multiple genomic regions, I don't think the -r flag is compatible with that! duh!
+  + -r should specify a comma-separated list of regions, but my lists are not comma separated? could this have messed up upstream things? YES very potentially!
+    + I think in this case I can just replace -r with -R and chrom_200_r with chrom_200
+    + upstream implications: 
+      + also used chrom_200_r with: calc_bamstats, extract_all_sites (downstream), gen_masks
+        + gen_masks: maybe fine, just used dir to define number of array jobs 
+          + does have the following message, maybe because of bamstats output: 
+```{bash, eval = FALSE}
+Argument "depth" isn't numeric in numeric gt (>) at /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/bedmask.pl line 82, <$infh> line 4660935.
+Argument "pos" isn't numeric in subtraction (-) at /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/bedmask.pl line 123, <$infh> line 4660935.
+```
+        + calc_bamstats:
+          + chrom_200_r is actually in the proper format here because I'm reading the chrom_200_r file and feeding each line to -r 
+      + so it seems like the annotation script is the first issue with -r and chrom_200_r, and I can solve it by switching back to chrom_200! 
+
+* restarting annotation jobs `43742239`
+    
+#### September 14th, 2024
+
+* checking annotation jobs 
+* Ah, okay, something wrong with -R flag still.. 
+```{bash, eval = FALSE}
+[E::hts_open_format] Failed to open file "CM078121.1" : No such file or directory
+[E::bcf_sr_regions_init] Could not open file: CM078121.1
+Failed to read the regions: CM078121.1
+```
+* -R is getting passed the contents of the file, not the file itself! 
+* restarting with jobid `43747772`
+
+* restarting `extract_variants_no_maf.sh` (`43752393`) and `wrapper-extract_all_sites.sh` (`43752489`)
+
+#### September 15th, 2024
+* most `extract_variants_no_maf.sh` (`43752393`) were successful
+  + something wrong with array job 161
+```{bash, eval = FALSE}
+Use of uninitialized value $chr in concatenation (.) or string at /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/extractVariants.pl line 208.
+```
+  + annotation job for 161 also failed 
+```{bash, eval = FALSE}
+Use of uninitialized value $tok[0] in concatenation (.) or string at /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/insertAnnotations_emr.pl line 682.
+
+```
+  + chrom_list_161.txt: `CM078121.1      33063807        40281807`
+
+```{bash, eval = FALSE}
+# troubleshooting
+# original code to annotate: 
+bcftools view -R ${CHROM_LIST_DIR}/chrom_list_${SLURM_ARRAY_TASK_ID}.txt --no-version /mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_norm.bcf.gz | /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/insertAnnotations_emr.pl --dpbounds 2587,7761 --hetbound 1e-4 --bed /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/bed_by_chrom/EMR_mask_${SLURM_ARRAY_TASK_ID}_fail.bed --overwrite --genorep /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/EMR_groups_qc.txt | bgzip > /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotated_vcf/EMR_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz
+
+bcftools view -R /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/chrom_200/chrom_list_161.txt --no-version /mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_norm.bcf.gz
+# no sites...
+bcftools view -r CM078121.1:33063807-40281807 /mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_norm.bcf.gz
+
+
+# what about 160? CM078121.1      25845807        33063806
+bcftools view -r CM078121.1:25845807-33063806 /mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_norm.bcf.gz
+# looks normal at the beginning... 
+bcftools view -r CM078121.1:33045807-33063806 /mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_norm.bcf.gz
+
+# raw bcf: 
+bcftools view -r CM078121.1:33063807-40281807 /mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_raw.bcf.gz
+# one SNP at 33063804
+
+```
+
+* There are no sites in CM078121.1:33063807-40281807 in the normalized bcf file... this seems wrong. 
+  + normalization was by scaffold, but calling SNPs was by chrom_200 
+  + failed to notice mystery job issue that occurred when calling SNPs for genome chunk 161
+  + I no longer have raw SNP calls broken down by genome chunk... But I think I can merge the new 161 chunk with the larger merged file
+
+Next steps: 
+(1) recall SNPs for genome chunk 161 (job id `43781785_161`) Done! 
+(2) merge 161 called SNPs with raw BCF to form a complete raw BCF 
+(3) re-normalize raw_BCF job corresponding to chromosome CM078121.1
+(4) re-merge all normalized bcfs
+  + generate masks? --> those are generated! 
+(5) re-annotate genome chunk 161
+
+* big picture, what should I do from here? The next steps after extracting variant sites is to calculate the position of snps within indels, and use that to generate a variant filtered pos file, to use to get final filtered VCF files. If I am missing 1/200th of the genome, I can probably get the other 199 chunks to the final filtered file, and do preliminary analyses using them while I am waiting for chunk 161. 
+
+* extracting allsites mask didn't seem to work: `wrapper-extract_all_sites.sh` (`43752489`)
+  + masks are empty... so no sites pass? 
+
+* I think maybe the thing to do is to try to separate out all the Michigan sites separately. 
+
+#### September 16th, 2024
+
+* First task: merge chunk 161 called SNPs with raw BCF to form a complete raw BCF file! 
+  + modifying `merge_bcf.sbatch` code and saved as `concat_bcf_161.sbatch`
+
+```{bash, eval = FALSE}
+#!/bin/bash --login
+
+########## SBATCH Lines for Resource Request ##########
+
+#SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem-per-cpu=24G            # memory required per allocated CPU (or core)
+#SBATCH --job-name=merge_161    # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_161_%A.out"
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_bcf/merge_161_%A.err"
+#SBATCH --account=bradburd
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=clarkm89@msu.edu
+
+##########
+
+# This script merges called snps in genome chunk 161 with the rest of the genome-wide called snps. 
+
+#load programs we want to use, updated for ubuntu
+module purge
+module load powertools
+module load BCFtools/1.19-GCC-13.2.0
+module list
+
+# define variables
+FILE1='/mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_raw.bcf.gz'
+FILE2='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/EMR_WGS_161.bcf.gz'
+OUTFILE='/mnt/scratch/clarkm89/EMR_WGS/variants/EMR_WGS_CompleteRaw.bcf.gz'
+
+bcftools concat -a ${FILE1} ${FILE2} | bcftools sort - -Ob -o ${OUTFILE}
+
+tabix -p bcf ${OUTFILE}
+
+wait
+
+#print some environment variables to stdout for records
+echo ----------------------------------------------------------------------------------------
+echo PRINTING SUBSET OF ENVIRONMENT VARIABLES:
+(set -o posix ; set | grep -v ^_ | grep -v ^EB | grep -v ^BASH | grep -v PATH | grep -v LS_COLORS)
+
+echo ----------------------------------------------------------------------------------------
+
+```
+  + job id `43811128`
+
+#### September 17th, 2024
+
+* `concat_bcf_161.sbatch` failed, potentially because it ran out of space on $TMPDIR? `[E::bgzf_flush] File write failed (wrong size)`
+  + restarting with 200G mem, and setting -T (tempdir) to research drive, and including -m flag, jobid `43856040`
+
+* Bamstats depth by genome chunk 
+  + created `bamstats_depth_byChrom.sh` to run on individual bamstats files
+```{bash, eval = FALSE}
+# create depth files for each genome chunk 
+
+# run in bamstats dir 
+for i in $(seq 1 200); do
+  awk '{print $3}' ./EMR_all_qc_${i}.bamstats > ./EMR_${i}_qc_depth.bamstats
+done
+
+# run bamstats depth viz script bamstats_depth_byChrom.sh for each depth file 
+
+sbatch ./scripts/bamstats_depth_byChrom.sh
+
+```
+  + jobid `43849676` 
+  + jobs finished, some lines denoting median/median x N did not print, seemingly because of NA issues. Not sure why there would be NAs in the depth files, but doesn't seem to impacting visualization that I care about, so ignoring for now. 
+  + Peak around 2000 is because of sites on scaffolds, perhaps w-chromosome? 
+  
+* use vcftools to get individual depth 
+```{bash, eval = FALSE}
+for i in $(seq 1 200); do
+  vcftools --gzvcf EMR_variants_nomaf_${i}.vcf.gz --depth --out ./ind_depth/ind_depth_${i}
+done
+```
+  
+* get list of samples from VCF: `bcftools view FILE.bcf.gz | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n" `
+* Get stats from vcfs using `bcftools stats` and `vcfstats` 
+* working in R to calculate individual coverage using `ind_coverage.R`
+
+##### BIG PROBLEM!!! 
+* ELF_335 is missing from all .bcf files! 
+* merged bam files contains two different individual ids in the SM field of @RG. 
+```{bash, eval = FALSE}
+# extract header of file 
+samtools view -H ELF_335.trim.merge.bam > ELF_335_header.sam
+
+# editing header manually, replacing "SM:ELF_335L2" and "SM:ELF_335L3" with "SM:ELF_335"
+# information still exists in the @PG field in the header
+
+samtools reheader ELF_335_header.sam ELF_335.trim.merge.bam > ELF_335.rehead.trim.merge.bam
+
+# test it out with mpileup
+bcftools mpileup -f '/mnt/scratch/clarkm89/EMR_ref_2024/GCA_039880765.1/GCA_039880765.1_rSisCat1_p1.0_genomic.fna' ELF_335.rehead.trim.merge.bam
+# WORKS!!! 
+
+# index ELF_335.rehead.trim.merge.bam
+samtools index ELF_335.rehead.trim.merge.bam
+
+```
+* updated `final_bam_list.txt`
+* re-calling snps... job id `43861095`
+  + cancelled all chunk 161 jobs, as I'll have to re-normalize anyway. 
+  + I am keeping variant files etc. so I can continue to write scripts and get prelim results
+  + delete log files newer than 1 day: `find ./* -mtime -1 -exec rm -rf {} \;`
+
+#### September 18th, 2024
+* recalling snps jobs chugging along
+
+#### September 19th, 2024
+* recalling snps jobs chugging along
+
+#### September 20th, 2024
+* jobs to call snps done! 
+* merging raw bcfs to get big BCF to normalize job id `43964097`
+* normalizing by scaffold job id `43977597`
+* doublecheck number of individuals in new bcf files 
+  + `bcftools view in.vcf.gz | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n"  | wc -l`
+  + 313! 
+* normalizing done, merging norm bcfs, jobid `43986865`
+
+#### September 21th, 2024
+* merging norm bcfs done! 
+* re-run vcfstats job id `44033543`
+* re-run vcfstats_sum
+  + primarily looking for cut-offs to use for annotation
+  + start jobs for all sum and depth specifically 
+  + merging vcfstats file and outputting depth as a separate file to viz. jobid `44036114` file name `merge_vcfstats.sh`
+* vcfstats depth viz`44049632`
+  + need depth cut offs for annotation
+  + calculating from depth file: `sort -n EMR_WGS_norm_ordered_depth.vcfstats | awk '{ a[NR] = $1 } END { if (NR % 2) { print a[(NR + 1) / 2] } else { print (a[NR / 2] + a[NR / 2 + 1]) / 2 } }'`
+  + nope that doesn't work! 
+  + Will just make the histogram again in R! Finally! 
+  + min depth: 2596, max depth: 7788
+* next step: re-annotate! 
+  + remade group file using `make_groups.R`
+  + jobid `44055824`
+  
+#### September 22nd, 2024
+* annotating vcfs done! 
+* now: extract variant sites job id `44098089`
+* use vcftools to get individual depth 
+```{bash, eval = FALSE}
+for i in $(seq 1 200); do
+  vcftools --gzvcf EMR_variants_nomaf_${i}.vcf.gz --depth --out ./ind_depth/ind_depth_${i}
+done
+```
+* get pos files for snps within indels
+  + `make_pos_windel.sbatch` jobid `44112049`
+  + done very quickly! 
+* make script to filter for high coverage individuals `flt_inds.sbatch`
+  + make samples file `high_cov_inds.txt`
+  + make script `flt_inds.sbatch`
+  + running job id `44120703`
+  + done, confirm correct no. of individuals: 
+    + `bcftools view EMR_variants_nomaf_highcov_9.vcf.gz | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n"  | wc -l`
+    + 228! 
+* get `bcf_sample_order.txt` for high coverage individuals 
+  + `highCov_vcf_sample_order.txt`
+  + bcftools view EMR_variants_nomaf_highcov_9.vcf.gz | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n" > highCov_vcf_sample_order.txt
+* make script to filter for high quality biallelic snps
+  + filtering line for high GQ and 95% of individuals have 10X or greater (using bcftools/perl line)
+  + filter out SNPs in indels (using bed files) 
+  + filter out multiallelic snps (bcftools -M2)
+  + running!
+
+#### September 23rd, 2024
+* high quality SNP extraction jobs are done, but didn't retain many SNPs 
+  + need to quantify total number on scaffolds
+* I am re-running the job, but requiring 90% of individuals have 10X at a site instead of 95%. 
+  + job id `44144367`
+* 95% cut off results in 818904 sites, 90% cut off results in 2383319 sites
+  + `cat *.pos | wc -l` 
+* create .pos file for all sites in genome, dropping scaffolds  
+  + created `ref_chromosome_list.txt` which is a text file of 17 chromosomes in the EMR genome, excluding the mt genome or the Z chromosome 
+```{bash, eval = FALSE}
+# Read the list of chromosomes into a variable, formatted for grep
+chrom_list=$(paste -sd '|' $LABWGS/scripts/keys/ref_chromosome_list.txt)
+
+# Loop through the files in order and filter by chromosome
+for i in {1..200}
+do
+    # Use grep to filter lines with chromosomes from EMR_highQual_varfilter_allChrom.pos
+    grep -E "^($chrom_list)" EMR_highQual_varfilter_$i.pos >> EMR_highQual_varfilter_allChrom.pos 
+done
+```
+* High quality biallelic SNPS on autosomal chromosomes: 
+  + 95%: 809,732 SNPs
+  + 90%: 2,352,466 SNPs
+* Extract high quality variants 
+  + `bcftools view -T <pos_file> <input.vcf> -Oz -o <output.vcf.gz>`
+  + output dir: `variants_highQual`
+  + script: `flt_high_qual_snps.sbatch`
+  + job id `44150989`
+  + no variants in chrom chunks 190 and 195 (blank .pos file)
+* Merge high quality .vcf files into one, filter in one go?
+```{bash, eval = FALSE}
+# something like... 
+VCF_LIST= # list of vcf file form flt_high_qual_snps.sbatch, in order of chromosome chunk
+KEEP_CHROM=   # list of chromosomes to retain in output VCF file
+OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_variants_nomaf_chrom.vcf.gz
+
+# concat high quality variants vcf files, then filter to only retain sites on autosomal chromosomes 
+bcftools concat -n -Ou --file-list $VCF_LIST | bcftools view -T $KEEP_CHROM -Oz -o $OUTVCF
+
+tabix -p vcf $OUTVCF
+
+```
+  + make VCF_LIST
+```{bash, eval = FALSE}
+find "$(pwd)" -name "*.vcf.gz" > /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/vcf_highQual_var_list.txt
+# in vim
+%s/.*\/EMR_highQual_variants_nomaf_\(\d\+\)\.vcf\.gz/\1 &/ # add column to the left of file path that is N
+sort n    # sort based on N
+%s/^\d\+ //    # delete first column, leaving the sorted file paths
+```
+  + running `merge_HQ_varaints.sbatch` jobid `44161426`
+  + done! 
+* get some basic statitics about the VCF
+  + `basic_vcf_stats.sbatch`
+  + job id `44168155`
+* depth vs het 
+
+#### September 24th, 2024
+* results are rolling in! basic vcfstats results from `basic_vcf_stats.R`
+* seems like some indels make it through filtering! Should do more investigation, but for now: 
+
+```{bash, eval = FALSE}
+# in a tmux shell
+bcftools view -i 'INDEL=0' EMR_highQual_variants_nomaf_chrom.vcf.gz -o  EMR_highQual_SNPs_nomaf_chrom.vcf.gz
+
+tabix -p vcf EMR_highQual_SNPs_nomaf_chrom.vcf.gz
+
+```
+* check for indels in output, re-run `basic_vcf_stats.sbatch` 
+   + vcf looks good, job id `44210526`
+   
+* check transition to transversion rate using vcfstats `run_vcf_stats.sbatch`  
+  + jobid `44210549`
+  + all look within the same realm
+* five weird individuals with high heterzygosity...
+  + "PRDF_sca1030" "SSSP_sca0810" "SSSP_sca0978" "CCRO_sca0968" "SSSP_sca0802"
+  + these individuals also have high # of singletons 
+  + call SNPs on mt genome as diploid --> contamination should show up as heterozygous calls 
+    + created script `call_mtDiploid.sbatch`, running job id `44216273`
+    
+```{bash, eval = FALSE}
+# filter to retain variant sites in EMR_MT_calledDiploid.bcf.gz and get het from vcftools 
+
+bcftools view -m2 -M2 -v snps -Oz -o EMR_MT_calledDiploid_var.vcf.gz EMR_MT_calledDiploid.bcf.gz
+
+vcftools --gzvcf EMR_MT_calledDiploid_var.vcf.gz --het --out EMR_MT_calledDiploid
+
+```
+  + Based on investigation in basic_vcf_stats.R, 4/5 of the high nuclear het individuals also have high mt het.
+  + Important to note that some individuals who were dropped due to depth also have high mt het! 
+
+* Quality investigation
+  + To investigate potential sample contamination in individuals with (1) high nuclear het, (2) high number of singletons, I am going to extract allelic depth (AD) information from the filtered VCF file, and use a binomial test to see if we should suspect contamination issues. 
+  + Individuals to test: 
+    + high nulcear het, mt het, and singletons: SSSP_sca0810,SSSP_sca0978,CCRO_sca0968,SSSP_sca0802
+    + high nuclear het, and singletons: PRDF_sca1030
+    + high number of singletons: BPNP_sca461,GRLL_sca1453,KLDR_sca0689,WLRD_Sca1227
+    + normal individuals (Ohio): SSSP_sca0809,PRDF_sca1037,SSSP_sca0808,ROME_sca0678,WLRD_Sca1224
+    + normal individuals (Michgian): ONS_1,PCC_81,HAL_2,GRF_5,GOU_9
+```{bash, eval = FALSE}
+# running in tmux shell
+SAMPLES='SSSP_sca0810,SSSP_sca0978,CCRO_sca0968,SSSP_sca0802,PRDF_sca1030,BPNP_sca461,GRLL_sca1453,KLDR_sca0689,WLRD_Sca1227,SSSP_sca0809,PRDF_sca1037,SSSP_sca0808,ROME_sca0678,WLRD_Sca1224,ONS_1,PCC_81,HAL_2,GRF_5,GOU_9'
+VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom.vcf.gz'
+OUTFILE='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/EMR_highQual_SNPs_GT_AD.txt'
+
+# just AD field
+bcftools view -s $SAMPLES $VCF | bcftools query -f '%CHROM\t%POS[\t%AD]\n' >> $OUTFILE
+
+# AD and genotype call fields
+bcftools view -s $SAMPLES $VCF | bcftools query -f '%CHROM\t%POS[\t%GT:%AD]\n' > $OUTFILE
+
+```
+
+  + modifying binomial test code from EMR inbreeding vcf_funcs.R
+  + Five suspects are definitely outliers in the binomial test! Will drop them 
+  
+* filter out bad inds, use bcftools view -m2 -M2 to remove homozygous sites 
+SSSP_sca0810,SSSP_sca0978,CCRO_sca0968,SSSP_sca0802,PRDF_sca1030
+
+```{bash, eval=FALSE}
+# running in tmux shell
+SUSPECTS='SSSP_sca0810,SSSP_sca0978,CCRO_sca0968,SSSP_sca0802,PRDF_sca1030'
+INVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom.vcf.gz
+OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+
+bcftools view -s ^$SUSPECTS -m2 -M2 -o $OUTVCF $INVCF
+
+```
+  + double check number of individuals: `bcftools view EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n"  | wc -l`
+  + 223 (228-5) yes! 
+
+#### September 25th, 2024
+* write scripts to convert VCF to plink `vcf2plink.sbatch` job id `44243070`
+  + worked! 
+* LD prune / maf 
+```{bash, eval = FALSE}
+# code from Nicole: 
+
+plink --bfile $NAM\.plink --allow-extra-chr --indep-pairwise 50 5 0.5 --out $NAM\.ld
+
+echo "--- reformat file of LD site to rm for $VCF ---"
+sed 's/\([^_]*_[^_]*\)_\(.*\)/\1\t\2/' $NAM\.ld.prune.out > $NAM\.ld.prune.reformat.out
+
+
+echo "--- rm LD sites from $VCF ---"
+vcftools --gzvcf $VCF \
+  --exclude-positions $NAM\.ld.prune.reformat.out \
+  --recode \
+	--recode-INFO-all \
+	--stdout | gzip -c > $NAM".ld.vcf.gz"
+
+# running in tmux shell
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools 
+module list 
+
+INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual
+VCF_NAME=EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf
+OUTNAME=EMR_highQual_chrom_drop_maf_ldPruned
+
+plink --vcf ${INDIR}/${VCF_NAME} --biallelic-only 'strict' --set-missing-var-ids @:# --vcf-half-call 'missing' --double-id --recode --allow-extra-chr --maf 0.05 --indep-pairwise 50 5 0.5 --out ${OUTDIR}/${OUTNAME}
+
+# doesn't actually DO ld pruning, just gives you a list of sites to exclude/keep. Rare variants are actually removed 
+
+```
+
+* make PCA
+  * steps to PCA:
+    + extract HQ vcf DONE
+    + merge all chroms, DONE
+    + filter out scaffolds and mt genome, sex chrom etc. DONE
+    + convert VCF to plink and do maf cut-off and linkage pruning
+    + do [PCA](https://speciationgenomics.github.io/pca/)
+
+```{bash, eval = FALSE}
+# run in tmux shell
+# makes eigenvec and eigenval files for PCA
+
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools 
+module list 
+
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_highQual_chrom_drop_maf_ldPruned
+LD_SITES=EMR_highQual_chrom_drop_maf_ldPruned.prune.in
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned
+
+plink --file $FILES --allow-extra-chr --extract $LD_SITES --pca --out $OUTDIR
+
+```
+
+* Admixture
+```{bash, eval = FALSE}
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load ADMIXTURE/1.3.0
+module load powertools
+module list
+
+# make ld pruned .bed file 
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_highQual_chrom_drop_maf_ldPruned # these still have sites in LD
+LD_SITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_highQual_chrom_drop_maf_ldPruned.prune.in
+LD_FLTDATA=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_ldPruned
+
+plink --file $FILES --extract $LD_SITES --make-bed --allow-extra-chr --out $LD_FLTDATA
+
+# replace chromosomes in .bim file with numeric code 
+
+INBIM=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_ldPruned.bim
+OUTBIM=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_ldPruned_int.bim
+
+awk '{
+    if (!($1 in chr_map)) {
+        chr_map[$1] = ++count
+    }
+    $1 = chr_map[$1]
+    print
+}' OFS="\t" $INBIM > $OUTBIM
+
+# replace old .bim with chr with new .bim file with integers, but make a backup of the original file
+mv $INBIM ./EMR_ldPruned_chr.bim
+mv $OUTBIM $INBIM
+
+# run admixture -- need to be a submitted job! 
+# BED='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_ldPruned.bed'
+# DEMES='27'
+# 
+# # Usage: admixture <input file> <K>
+# admixture --cv $BED -j${CPUS} $DEMES
+# 
+# # needs to be a submission job
+# # each job could run one K value (1-27)
+```
+* using slurm: `run_admixture.sbatch` job id `44255086`
+
+#### September 26th, 2024
+* making progress today! 
+* extracted cross validation from admixture log files using: `grep -E 'CV error' *.out | cut -d' ' -f3,4 > cross_validation_errors.txt`
+* adding --freq2 to `basic_vcf_stats.sbatch` to get SFS, as well as adding code to get FST
+  + need to make popfiles
+```{r, eval = FALSE}
+library(stringr)
+# get list of individuals
+inds # from makePCA.R
+
+# get list of sites
+sites <- unique(sub("_.*", "", inds))
+
+# extract 
+for(i in 1:length(sites)){
+  write.table(inds[grep(sites[i], inds)], file = paste0("/Users/meaghan/Desktop/EMR_WGS/scripts/keys/pops/", sites[i], ".txt"), 
+            quote = FALSE, sep = "\n", row.names=FALSE, col.names = FALSE, 
+            fileEncoding = "UTF-8")
+}
+
+```
+* running `44274988` with FST code included 
+* I ended up writing separate scripts `calc_pairwiseFST.sbatch` and a wrapper because it was taking so long! 
+* My goal for the day was to compile my results thus far to present to Fitz lab tomorrow 
+  + plotted admixture plots
+  + made SFS
+  + made maps using LULC data 
+  + re-plotted updated basic stats
+  + hopefully get FST! by tomorrow
+
+#### September 27th, 2024
+* extracting FST information! 
+```{bash, eval = FALSE}
+echo -e "site1\tsite2\tfst" > ../../Fst/Fst_report.txt
+
+# Loop through all files in the directory
+for file in ./*.err; do
+
+    sites=$(grep -- "--keep" "$file" | sed 's/.*pops\/\([A-Z]*\)\.txt/\1/')
+
+    # Extract the Fst estimate
+    fst=$(grep 'Weir and Cockerham weighted Fst estimate' "$file" | awk '{print $NF}')
+
+    # Save results to report.txt if both populations and Fst are found
+    site1=$(echo "$sites" | sed -n '1p')
+    site2=$(echo "$sites" | sed -n '2p')
+    echo -e "$site1\t$site2\t$fst" >> ../../Fst/Fst_report.txt
+done
+
+```
+* done with IBD plots! 
+
+* drop remaining weirdo: 
+```{bash, eval=FALSE}
+# running in tmux shell
+SUSPECTS='SSSP_sca0810,SSSP_sca0978,CCRO_sca0968,SSSP_sca0802,PRDF_sca1030,KLDR_sca0689' # adding KLDR_sca0689 to previous list
+
+INVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom.vcf.gz
+OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+
+# adding -a to actually drop invariant alternate alleles 
+bcftools view -s ^$SUSPECTS -m2 -M2 -a -o $OUTVCF $INVCF
+
+```
+  + double check number of individuals: `bcftools view EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n"  | wc -l`
+  + 222! 
+
+* redo previous analyses 
+
+```{bash, eval = FALSE}
+
+# basic popgen stats--------------------------------------------------------------------------------------------------------------
+sbatch ./scripts/basic_vcf_stats.sbatch # jobid 44325253
+
+# FST--------------------------------------------------------------------------------------------------------------
+sbatch ./scripts/wrapper-calc_pairwiseFST.sh
+
+# PCA--------------------------------------------------------------------------------------------------------------
+# do in tmux shell with plink
+
+# convert EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz to plink with maf filter and ld.prune file 
+# running in tmux shell
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools 
+module list 
+
+# Currently Loaded Modules:
+#   1) PLINK/1.9b_6.21-x86_64   2) reportseff/2.7.6   3) powertools/1.3.0
+
+INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual
+VCF_NAME=EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf
+OUTNAME=EMR_highQual_chrom_drop_maf
+
+plink --vcf ${INDIR}/${VCF_NAME} --biallelic-only 'strict' --set-missing-var-ids @:# --vcf-half-call 'missing' --double-id --recode --allow-extra-chr --maf 0.05 --indep-pairwise 50 5 0.5 --out ${OUTDIR}/${OUTNAME}
+
+# doesn't actually DO ld pruning, just gives you a list of sites to exclude/keep. Rare variants are actually removed 
+
+# make eigenvec and eigenval files for PCA
+
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf/EMR_highQual_chrom_drop_maf
+LD_SITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf/EMR_highQual_chrom_drop_maf.prune.in
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned
+
+plink --file $FILES --allow-extra-chr --extract $LD_SITES --pca --out $OUTDIR
+
+# Run admixture ------------------------------------------------------------------------------------------------------
+
+# use plink to prepare input files 
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools
+module list
+
+# make ld pruned .bed file 
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf/EMR_highQual_chrom_drop_maf # these still have sites in LD
+LD_SITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf/EMR_highQual_chrom_drop_maf.prune.in
+LD_FLTDATA=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_ldPruned
+
+plink --file $FILES --extract $LD_SITES --make-bed --allow-extra-chr --out $LD_FLTDATA
+
+# replace chromosomes in .bim file with numeric code 
+INBIM=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_ldPruned.bim
+OUTBIM=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_ldPruned_int.bim
+
+awk '{
+    if (!($1 in chr_map)) {
+        chr_map[$1] = ++count
+    }
+    $1 = chr_map[$1]
+    print
+}' OFS="\t" $INBIM > $OUTBIM
+
+# replace old .bim with chr with new .bim file with integers, but make a backup of the original file
+mv $INBIM ./EMR_ldPruned_chr.bim
+mv $OUTBIM $INBIM
+
+# run slurm submission script from dir you want output to be written to
+sbatch ../scripts/run_admixture.sbatch # job id 44326212
+
+```
+* moving forward:
+  + need to drop individual with tons of singletons, re-filter for just variant sites, and redo analyses with final set of individuals: 
+    + PCA [ran, need to update plots]
+    + admixture [ran, need to update plots]
+    + basic popgen stats (het, SFS, singletons) [ran, need to update plots]
+    + FST [ran, need to update plots]
+    + neighbor joining tree 
+      + IBS/hamming distance from plink, full SNP dataset 
+      + FastME (installed on research dir) and raxml-ng  for tree building 
+      + [ngsDist documentation with example](https://github.com/fgvieira/ngsDist?tab=readme-ov-file)
+        + make one complete distance matrix using plink 
+        + make 1000 bootstrapped replicates 
+        + make a tree using fastme for each bootstrap replicate and the full dataset 
+        + use RAxML-NG to place supports on main tree
+    + genome-wide pi/heterozygosity
+
+* Neighbor joining tree
+```{bash, eval= FALSE}
+# abandoning this code to try ngsDist, which will do the bootstrapping for me! 
+# create plink files with all variants (no maf)
+# convert EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz to plink
+# running in tmux shell
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools 
+module list 
+
+# Currently Loaded Modules:
+#   1) PLINK/1.9b_6.21-x86_64   2) reportseff/2.7.6   3) powertools/1.3.0
+
+INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual
+VCF_NAME=EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/all_SNPs
+OUTNAME=EMR_highQual_chrom_drop
+
+plink --gzvcf ${INDIR}/${VCF_NAME} --biallelic-only 'strict' --set-missing-var-ids @:# --vcf-half-call 'missing' --double-id --recode --allow-extra-chr --out ${OUTDIR}/${OUTNAME}
+
+# Create complete genetic distance matrix 
+
+# done in sbatch file! 
+
+FILES=
+OUTNAME=
+
+plink --file $FILES --distance --allow-extra-chr --out $OUTNAME
+
+# Create 1000 bootstrapped genetic distance matrices 
+
+
+```
+
+```{bash, eval = FALSE}
+
+# convert VCF to ngsDist format
+
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load BCFtools/1.19-GCC-13.2.0
+module load powertools
+module list
+
+# Currently Loaded Modules:
+#   1) PLINK/1.9b_6.21-x86_64       4) binutils/2.40-GCCcore-13.2.0   7) XZ/5.4.4-GCCcore-13.2.0    10) HTSlib/1.19.1-GCC-13.2.0  13) reportseff/2.7.6
+#   2) GCCcore/13.2.0               5) GCC/13.2.0                     8) OpenSSL/1.1                11) GSL/2.7-GCC-13.2.0        14) powertools/1.3.0
+#   3) zlib/1.2.13-GCCcore-13.2.0   6) bzip2/1.0.8-GCCcore-13.2.0     9) cURL/8.3.0-GCCcore-13.2.0  12) BCFtools/1.19-GCC-13.2.0
+
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+TEMPDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/tree/distance/temp/
+TEMPFILE=EMR_highQual_SNPs_nomaf_chrom_drop_temp
+INPUTFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/tree/distance/EMR_highQual_SNPs_nomaf_chrom_drop.geno.gz
+LABELFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/tree/distance/EMR_highQual_SNPs_nomaf_chrom_drop.labels
+
+# modified from: https://github.com/fgvieira/ngsDist?tab=readme-ov-file
+
+# create input geno file 
+bcftools view $VCF | plink --double-id --vcf /dev/stdin --allow-extra-chr --recode A-transpose --out ${TEMPDIR}/${TEMPFILE}
+tail -n +2 ${TEMPDIR}/${TEMPFILE}.traw | cut -f 1,4- | perl -p -e 's/\bNA\b/-1/g' | gzip > $INPUTFILE
+
+# create labels file
+zgrep CHROM $VCF | cut -f 10- | tr "\t" "\n" > $LABELFILE
+
+# run ngsDist, sbatch job! 
+
+sbatch ./scripts/run_ngsDist.sbatch # jobid 44329383
+
+```
+
+#### September 30th, 2024
+* continuing with neighbor joining tree
+```{bash, eval = FALSE}
+# continuing to make neighbor joining tree 
+# Use fastME to infer a tree for each of the matrices
+# continuing to follow code from: https://github.com/fgvieira/ngsDist?tab=readme-ov-file
+
+# using sbatch job to infer trees 
+
+sbatch ./scripts/infer_trees.sbatch # jobid 44401461
+
+# split the input dataset tree from the bootstraped ones:
+
+# from tree dir 
+head -n 1 EMR_highQual_SNPs_nomaf_chrom_drop_full.nwk > EMR_highQual_SNPs_nomaf_chrom_drop_full.main.nwk
+tail -n +2 EMR_highQual_SNPs_nomaf_chrom_drop_full.nwk | awk 'NF' > EMR_highQual_SNPs_nomaf_chrom_drop_full.boot.nwk
+
+# place supports on the main tree
+
+raxml-ng --support --tree EMR_highQual_SNPs_nomaf_chrom_drop_full.main.nwk --bs-trees EMR_highQual_SNPs_nomaf_chrom_drop_full.boot.nwk --prefix EMR_highQual_SNPs_nomaf_chrom_drop_full
+
+# plotting trees in R 
+
+# plotting code in plot_tree.R
+
+```
+
+* Results to update: 
+    + PCA [DONE]
+    + admixture [DONE]
+    + basic popgen stats (het, SFS, singletons) [DONE]
+    + FST [DONE]
+
+* ROH
+  + ideally, you should be able to give it vcf and an individual to analyze/population to analyze, and it will calculate allele frequencies on the fly, but this doesn't work (?). so that is why you make allele frequency input, and each individual is a job where you give it allele frequencies for the given population 
+  + want the alternate allele frequency within populations for allele frequency info
+  + what reference populations make sense? 
+    + BBI: BBI
+    + N. Michigan: ATL, GRA, HUR, MAN
+    + S. Michigan: SEV, BAS, GRF, DEL, HAL, OTI, PCC, GOU, ELF, THR, ONS
+    + All Ohio and other sites: KLDR, WLRD, ROME, JENN, CCRO, BPNP, GRLL, SSSP, SPVY, PRDF, CEBO
+
+```{bash, eval = FALSE}
+
+# make sample inputs 
+inds # list of individuals from PCA
+
+BBI_inds <- noquote(paste(inds[grepl("BBI", inds)], collapse = ','))
+NMI_inds <- noquote(paste(inds[grepl("ATL|GRA|HUR|MAN", inds)], collapse = ','))
+SMI_inds <- noquote(paste(inds[grepl("SEV|BAS|GRF|DEL|HAL|OTI|PCC|GOU|ELF|THR|ONS", inds)], collapse = ','))
+OH_inds <- noquote(paste(inds[grepl("KLDR|WLRD|ROME|JENN|CCRO|BPNP|GRLL|SSSP|SPVY|PRDF|CEBO", inds)], collapse = ','))
+
+length(inds[grepl("BBI", inds)]) # 23
+length(inds[grepl("ATL|GRA|HUR|MAN", inds)]) # 49
+length(inds[grepl("SEV|BAS|GRF|DEL|HAL|OTI|PCC|GOU|ELF|THR|ONS", inds)]) # 127
+length(inds[grepl("KLDR|WLRD|ROME|JENN|CCRO|BPNP|GRLL|SSSP|SPVY|PRDF|CEBO", inds)]) # 23
+
+write.table(BBI_inds, file = "/Users/meaghan/Desktop/EMR_WGS/scripts/keys/roh_groups/BBI_inds.txt", 
+  quote = FALSE, row.names=FALSE, col.names=FALSE, fileEncoding="UTF-8")
+write.table(NMI_inds, file = "/Users/meaghan/Desktop/EMR_WGS/scripts/keys/roh_groups/NMI_inds.txt", 
+  quote = FALSE, row.names=FALSE, col.names=FALSE, fileEncoding="UTF-8")
+write.table(SMI_inds, file = "/Users/meaghan/Desktop/EMR_WGS/scripts/keys/roh_groups/SMI_inds.txt", 
+  quote = FALSE, row.names=FALSE, col.names=FALSE, fileEncoding="UTF-8")
+write.table(OH_inds, file = "/Users/meaghan/Desktop/EMR_WGS/scripts/keys/roh_groups/OH_inds.txt", 
+  quote = FALSE, row.names=FALSE, col.names=FALSE, fileEncoding="UTF-8")
+  
+# make key file 
+key_file <- cbind.data.frame(c(inds[grepl("BBI", inds)], inds[grepl("ATL|GRA|HUR|MAN", inds)], inds[grepl("SEV|BAS|GRF|DEL|HAL|OTI|PCC|GOU|ELF|THR|ONS", inds)], inds[grepl("KLDR|WLRD|ROME|JENN|CCRO|BPNP|GRLL|SSSP|SPVY|PRDF|CEBO", inds)]),
+c(rep("/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/allele_freqs/EMR_highQual_SNPs_nomaf_chrom_drop_BBI_inds_altAF.txt", times = length(inds[grepl("BBI", inds)])), 
+rep("/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/allele_freqs/EMR_highQual_SNPs_nomaf_chrom_drop_NMI_inds_altAF.txt", times = length(inds[grepl("ATL|GRA|HUR|MAN", inds)])), 
+rep("/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/allele_freqs/EMR_highQual_SNPs_nomaf_chrom_drop_SMI_inds_altAF.txt", times = length(inds[grepl("SEV|BAS|GRF|DEL|HAL|OTI|PCC|GOU|ELF|THR|ONS", inds)])), 
+rep("/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/allele_freqs/EMR_highQual_SNPs_nomaf_chrom_drop_OH_inds_altAF.txt", times = length(inds[grepl("KLDR|WLRD|ROME|JENN|CCRO|BPNP|GRLL|SSSP|SPVY|PRDF|CEBO", inds)]))))
+colnames(key_file) <- c("ind", "af")
+
+write.table(key_file, file = "/Users/meaghan/Desktop/EMR_WGS/scripts/keys/roh_key.txt", 
+  quote = FALSE, row.names=FALSE, col.names=FALSE, fileEncoding="UTF-8")
+
+
+# make allele frequency files 
+
+# make sure that bcftools view -s is updating info fields... 
+# need to test... def updates AC/AN, but does it recalculate allele frequencies? but the fill-tags plugin should do the trick
+
+# calc_AF.sbatch job id 44411217
+
+
+# modify run_bcftools_roh.sbatch to run for each individual
+
+./scripts/run_bcftools_roh.sbatch # jobid 44411527
+
+# identify ROH and calculate FROH 
+
+# get full file paths to make roh_list.txt: 
+
+find "$(pwd)" -name "*highQual_SNPs_nomaf_chrom_drop_roh.txt" > ../scripts/keys/roh_list.txt
+
+# based on Tyler's code
+# modified version: identify_roh.sbatch, job id: 44412209
+
+# Tyler's verion: 
+# Identify ROH regions and calculate FROH from bcftools roh HMM output.
+
+sbatch /mnt/research/Fitz_Lab/projects/mosaic/popgen/roh/scripts/mosaic_roh_regions_array.sh
+implements:
+
+--- start bash code ---
+
+FILE_LIST='/mnt/research/Fitz_Lab/projects/mosaic/popgen/roh/scripts/mosaic_individual_roh_hmm_list.txt' # list of bcftools roh output files, one per line
+FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$HMM_FILE_LIST") # pull out a line from the list of files based on the array number 
+REGION_OUT=$(echo "$HMMF" | sed 's/\.txt$/\.regions/') # replace .txt with .regions, defines region output 
+FROH_OUT=$(echo "$HMMF" | sed 's/\.txt$/\.froh/') # replace .txt with .froh, defines Froh output 
+EXEC='/mnt/research/Fitz_Lab/projects/mosaic/popgen/roh/scripts/rohRegions.pl' # perl script
+
+CMD="$EXEC 20 $HMMF $REGION_OUT > $FROH_OUT"
+
+printf "\n%s\n\n" "$CMD"
+
+eval $CMD
+
+```
+* no ROH called, FROH=0, seems fishy! Maybe because I didn't specify AF specifically? 
+* need to do by individual! Fixed now 
+
+#### October 1st, 2024
+* collating ROH/Froh results 
+  + goal: Froh by site
+  + number vs length of ROH plot 
+```{bash, eval = FALSE}
+
+# from ${IND}_highQual_SNPs_nomaf_chrom_drop_roh.froh
+  # FROH_HIQUAL
+# from ${IND}_highQual_SNPs_nomaf_chrom_drop_roh.regions 
+  # want entire file 
+
+# run from /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/froh
+# extract Froh per individual
+echo -e "ind\tFroh" > ./Froh_report.txt
+
+# Loop through all files in the directory
+for file in ./*.froh; do
+    
+    # get individual name 
+    IND=$(echo $file | awk -F"_" '{print $1"_"$2}')
+    # extract Froh
+    FROH=$(sed -n "2p" "$file" | awk '{print $2}')
+
+    # Save results to report.txt if both populations and Fst are found
+    echo -e "$IND\t$FROH" >> ./Froh_report.txt
+done
+
+# continuing analyses in ROH_analyses.R 
+```
+* extract landscape change data 
+  + extract study area in hpcc, save as R object, then try locally? 
+  + uploading conus_lulc_boolean.zip and state_mask.zip to hpcc 
+
+#### October 1st, 2024
+
+*GONE
+  + "installed" scripts from Ben (downloaded from GONE github)
+  + NOT THIS: `find ./ ! -newermt "2024-10-01 00:00:00" | xargs rm -rf`
+  + input file should be the same as plink .ped and .map files
+  + need to update all snps plink files after dropping additional individual! 
+```{bash, eval= FALSE}
+# remake all SNP plink files 
+# do in tmux shell
+
+# convert EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz to plink and output all variants (no maf or ld pruning) 
+# running in tmux shell
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools 
+module list 
+
+# Currently Loaded Modules:
+#   1) PLINK/1.9b_6.21-x86_64   2) reportseff/2.7.6   3) powertools/1.3.0
+
+INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual
+VCF_NAME=EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/all_SNPs
+OUTNAME=EMR_highQual_chrom_drop
+
+plink --vcf ${INDIR}/${VCF_NAME} --biallelic-only 'strict' --set-missing-var-ids @:# --vcf-half-call 'missing' --double-id --recode --allow-extra-chr --out ${OUTDIR}/${OUTNAME}
+
+```
+  + edit parameters file
+    + CentiMorgans per Megabase... 
+      + following this [github question](https://github.com/esrud/GONE/issues/39)
+      |0.000000024 per base means 0.000000024 x 1000000 = 0.024 Morgans per Mb, or 2.4 cM per Mb, so your recombination rate should be 2.4 cM/Mb
+      + recombination rate estimate: 1.79e-8 x 1000000 = 0.0179 Morgans per Mb, or 1.79 cM per Mb
+
+```{eval = FALSE}
+#INPUT_PARAMETERS_FILE
+
+########################################################
+
+PHASE=2 ### Phase = 0 (pseudohaploids), 1 (known phase), 2 (unknown phase)
+cMMb=1.79  ### CentiMorgans per Megabase (if distance is not available in map file).
+DIST=1  ### none (0), Haldane correction (1) or Kosambi correction (2)
+NGEN=2000 ### Number of generations for which linkage data is obtained in bins
+NBIN=400  ### Number of bins (e.g. if 400, each bin includes NGEN/NBIN = 2000/400 = 5 generations)
+MAF=0.0   ### Minor allele frequency (0-1) (recommended 0)
+ZERO=1    ### 0: Remove SNPs with zeroes (1: allow for them)
+maxNCHROM=-99  ### Maximum number of chromosomes to be analysed (-99 = all chromosomes; maximum number is 200)
+maxNSNP=50000 ### Maximum approx number of SNPs per chromosomes to be analysed (maximum number is 50000)
+hc=0.05   ### Maximum value of c analysed (recommended 0.05; maximum is 0.5)
+REPS=40   ### Number of replicates to run GONE (recommended 40)
+threads=-99  ### Number of threads (if -99 it uses all possible processors)
+
+###################################################################
+
+```
+  + will run GONE on each population separately for populations with sample size greater than 10 (less samples = less accurate results)
+```{r, eval = FALSE}
+pca <- read.csv("/Users/meaghan/Desktop/EMR_WGS/PCA/EMR_highQual_chrom_drop_maf_ldPruned.eigenvec", header = FALSE, sep = " ")
+inds <- pca$V1
+site_identifiers <- sub("_.*", "", inds)
+table(site_identifiers)[table(site_identifiers) > 10]
+
+# Sites with > 10 samples: BBI, ELF, GOU, GRA, HAL, MAN, PCC, SEV
+
+# Create input files with sample sets using plink (either with bcftools or plink)
+
+# sequentially (?? given potential size of output?), run GONE for each population, as sbatch job, potentially? 
+```
+```{bash, eval= FALSE}
+
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load BCFtools/1.19-GCC-13.2.0
+module load powertools
+module list
+
+SITE=$1 # use standard input to get SITE, either BBI, ELF, GOU, GRA, HAL, MAN, PCC, or SEV
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/all_SNPs/EMR_highQual_chrom_drop
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/GONE/input/
+OUTNAME=${SITE}
+
+# generate list of samples 
+INDS=$(bcftools view $VCF | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n"  | grep $SITE | tr "\n" "," | sed 's/,$//')
+
+# use bcftools view to retain only individuals from a given site, and filter out nonvariant sites of the new sample set 
+# use plink to convert to .ped and .map files 
+bcftools view -s $INDS -m2 -M2 -a $VCF | plink --vcf /dev/stdin --biallelic-only 'strict' --set-missing-var-ids @:# --vcf-half-call 'missing' --double-id --recode --allow-extra-chr --out ${OUTDIR}/${OUTNAME}
+
+# need to replace chromosome names with integers 
+# recycling code from running ADMIXTURE 
+
+# replace chromosomes in .map file with numeric code 
+INMAP=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/GONE/input/${SITE}.map
+OUTMAP=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/GONE/input/${SITE}_test.map
+
+awk '{
+    if (!($1 in chr_map)) {
+        chr_map[$1] = ++count
+    }
+    $1 = chr_map[$1]
+    print
+}' OFS="\t" $INMAP > $OUTMAP
+
+# # replace old .bim with chr with new .map file with integers
+mv $OUTMAP $INMAP
+
+```
+  + testing with BBI --> seems to be working! 
+  
+#### October 2nd, 2024
+* continuing with GONE analysis! To write a little wrapper script, or just do everything individually? I think turning this into a slurm job will be too complicated with the ridiculous file system stuff, so maybe just do it individually? 
+* `./scripts/make_GONE_input.sh SITE`
+* to run GONE, from directory where output shoud live `../script_GONE.sh ../input/ELF`
+* Ochoa and Gibbs 2021 use a recombination rate of 2.8 cM Mb-1, the chicken recombination rate
+  + ... but what about the Schield estimate from 2020?
+  + perhaps it would be good to get a massasauga specific one? 
+  + running with 1.79, 6.08, and 2.8 (chicken) recombination rates... 
+    + should also run with and without the microchromosomes because of high recombination rates on microchromosomes in rattlesnakes (Schield et al. 2020)
+      + Gibbs 2021 ref had 7 macro chromosomes, Z chrom, and 10 micro chromosomes 
+```{bash, eval = FALSE}
+# macro in 2024 ref: 
+>CM078115.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 1
+>CM078116.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 2
+>CM078117.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 3
+>CM078118.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 4
+>CM078119.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 5
+>CM078120.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 6
+>CM078121.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 7
+MACRO=CM078115.1,CM078116.1,CM078117.1,CM078118.1,CM078119.1,CM078120.1,CM078121.1
+# micro in 2024 ref: 
+>CM078122.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 8
+>CM078123.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 9
+>CM078124.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 10
+>CM078125.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 11
+>CM078126.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 12
+>CM078127.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 13
+>CM078128.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 14
+>CM078129.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 15
+>CM078130.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 16
+>CM078131.1 Sistrurus catenatus isolate EasternMassasaugaR01 chromosome 17
+```
+* indexing EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+* adding -r flag to bcftools view in `make_GONE_input.sh` to only retain macro chromosomes in GONE input files 
+* making new GONE input with just macro chromosomes --testing with ELF 
+* using r = 3.935x10-8 (average of Crotalus estimates)
+* changing hc from 0.05 to 0.01 to account for potential recent migration
+* Running into "artefact" issues
+  + generate input with only macro chromosomes
+    + BBI [x]
+    + ELF [x]
+    + GOU [x]
+    + GRA [x]
+    + HAL [x]
+    + MAN [x]
+    + PCC [x]
+    + SEV [x]
+  + run GONE with hc of 0.1, cMMB = 3.935
+    + BBI [x]
+    + ELF [x]
+    + GOU [x]  
+    + GRA [x]
+    + HAL [x] 
+    + MAN [x]
+    + PCC [x] 
+    + SEV [x]
+* plotting output in R
+
+#### October 6th, 2024
+* lots of writing and work in R recently! 
+* Michgian floristic provinces: https://project.geo.msu.edu/geogmich/floristiczone.html#:~:text=You've%20probably%20noticed%2C%20while,or%20beech%20and%20maple%20composition.
+
+#### October 7th, 2024
+*Calculate genome-wide diversity
+  + filter high quality invariant sites 
+    + make all sites masks using extract_all_sites.sbatch
+    + copied filtering line from extract_highQual_sites.sbatch 
+    + running wrapper-extract_all_sites.sbatch, jobid `44585019`
+    + **will then need to extract those sites, but also filter out snps in indels?**
+  + **get code to calculate pi and theta**
+  + **get code to calculate genome wide het (I think vcftools will just be variant sites)**
+* recall ROH with average recombination rate from Schield et al. 2020
+  + replace 1.79 with 3.935
+  + re-rerunning run_bcftools_roh.sbatch jobid `44585554`
+  + re-rerunning to identify roh regions and calc ROH using identify_roh.sbatch `44587249`
+  
+#### October 8th, 2024
+* goals: 
+  + [] get filtered all_sites vcfs to calculate theta, het, and pi in the morning
+      + [x] filter out low depth individuals using flt_inds.sbatch and high_qual_inds.txt jobid `44592762`
+      + [x] remake filtering line for vcf files with 6 suspect samples dropped! using `make_groups.R`
+      + [x] get .pos file of sites that pass QC, excluding snps in deletion using "extract_highQual_sites.sbatch" jobid `44623418` 
+      + [x] run code to drop scaffolds from .pos files 
+```{bash, eval = FALSE}
+# Read the list of chromosomes into a variable, formatted for grep
+chrom_list=$(paste -sd '|' $LABWGS/scripts/keys/ref_chromosome_list.txt)
+
+# Loop through the files in order and filter by chromosome
+for i in {1..200}
+do
+    # Use grep to filter lines with chromosomes from EMR_highQual_varfilter_allChrom.pos
+    grep -E "^($chrom_list)" EMR_highQual_allsites_$i.pos >> EMR_highQual_allsites_allChrom.pos 
+done
+
+# index new pos file
+angsd sites index EMR_highQual_allsites_allChrom.pos
+
+# not very many passing sites...
+```
+      + [x] output all sites passing QC using "flt_high_qual_snps_.sbatch" 
+      + [] merge highqual sites VCFs, only chromosomes, throw out indels, edited `merge_HQ_variants.sbatch` jobid `44636954`
+  + [] re-run ROH analyses with new ROH results
+  + [] filter ROH used for lengths and dating 
+      + [x] figure out generation time across range 
+        + Miller 2005 report uses 6 years for Bruce Peninsula 
+        + Hileman 2018 age at first reproduction = 3
+        + Faust 2011: uncertainty around late maturing populations, seems to true for some N. lat sites, but which it applies to is uncertain, but also might just be because of understudied populations... 
+        + maybe use 3, and in the discussion, talk about uncertainty in generation time, but dates should really be take with significant grains of salt anyway ?
+      + proving complicated to get Froh_long... going to just drop for now and refocus on modeling 
+
+Evening priroities: 
+* get use .pos file on vcf to get passing vcfs
+* use *number* of ROH > 0.5 Mb instead of Froh for now in additional set of models --> doesn't look promising 
+* remake ROH length figure using: greater than 200 years, and in the last 200 years --> that's not actually that interesting... 
+
+#### October 9th, 2024
+* priorities: 
+   + get genome-wide diversity estimates
+   + FEEMS 
+* for later: Send .pos file of all snps that got filtered out 
+
+* restarting merge_HQ_variants.sbatch because I need to index vcf files! jobid `44661961`
+* FEEMS
+  + use jupyter lab in interactive job for now 
+  + install feems in a conda environment
+  + install jupyter lab in same conda environment 
+  + start interactive job on hpcc 
+```{bash, eval = FALSE}
+# set up conda environment
+conda create --name feems_env
+
+# activate conda environment
+conda activate feems_env 
+
+# install feems within environment
+# do as interative job because process is killed on dev node 
+interact -t 4 --mem=5000
+conda install -c bioconda feems -c conda-forge
+
+# this keeps getting killed for some reason... 
+```
+
+* [snake mutation rate](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9995274/#MOESM5)
+
+#### October 10th, 2024
+```{bash, eval = FALSE}
+# Pixy install and analyses 
+# following: https://pixy.readthedocs.io/en/latest/guide/pixy_guide.html
+# set up conda environment
+conda create --name pixy
+
+# activate conda environment
+conda activate pixy
+
+conda install --yes -c conda-forge pixy
+conda install --yes -c bioconda htslib
+
+pixy --help
+
+# create populations file 
+# "This is a headerless, tab-separated file where the first column contains sample names (exactly as represented in the VCF), and # the second column contains population names (these can be anything, but should be consistent!)."
+
+# get list of individuals from allsites VCF: 
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
+POP_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/highQual_pixy_populations.txt
+POP_TEMP=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/highQual_pixy_populations_temp.txt
+bcftools view $VCF | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n" > $POP_FILE
+
+# add column with population names 
+awk -F"_" '{print $0 "\t" $1}' $POP_FILE > $POP_TEMP
+
+mv $POP_TEMP $POP_FILE
+
+
+# run pixy 
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
+POP_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/highQual_pixy_populations.txt
+
+# maybe should not be on dev node... we'll see! yes, definitely dev node!  
+
+# pixy_diversity.sbatch jobid 44711678
+
+pixy --stats pi dxy \
+--vcf $VCF \
+--populations $POP_FILE \
+--window_size 10000 \
+--n_cores 1 \
+
+
+# want per site estimate of pi, 
+# sum(count_diffs) / sum(count_comparisons)
+```
+
+```{bash, eval = FALSE}
+# run plink PCA on subset of sites, excluding N. Michigan and Bois Blanc Island
+
+# run in tmux shell
+# makes eigenvec and eigenval files for PCA
+
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools 
+module list 
+
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf/EMR_highQual_chrom_drop_maf
+LD_SITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf/EMR_highQual_chrom_drop_maf.prune.in
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_SMIOH
+INDS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/SMIOH_inds.txt 
+
+plink --file $FILES --allow-extra-chr --extract $LD_SITES --pca --keep $INDS --out $OUTDIR
+
+
+```
+
+##### Notes from talking with Gideon about models: 
+* potential issues: 
+* x-axis 
+(1) what is the simularity between this "disturbance" metric and the ratio of cells w/in local grid that are no longer natural habitat in the present day?
+* amount of remaining habitat in contemporary times 
+  + is this correlated with disturbance metric 
+(2) What is the minimum amount of potential habitat over time? 
+(3) averaging across cells and within cells, could do harmonic mean instead 
+* Actions: 
+  + explore the relationship between our disturbance metric and a few other metrics:
+    + number cells in a local grid that are anthropogenic land use in 2020 / total grid size? last entry in prop_habitat_2020 for 10x10 grid size 
+      + technically looking at the opposite of this--proportion natural habitat in 2020
+      + tightly inversely correlated with disturbance
+      + has the same relationship ast disturbance 10x10
+    + minimum number of cells containing natural land cover types over time
+    + Disturbance, as calculated, but using the harmonic mean instead of mean 
+    + for each: correlate with disturbance in a 2x2 and 10x10 grid for each site and look at relationship with Froh 
+* y-axis
+  + try a beta distribution again? 
+  + try heterozygosity --> maybe spurious long ROH that are causing issues 
+  
+* spatial non-independence 
+  + throw points on a map --> sample disturbance and get null distribution
+  + run a bunch of models with different grid sizes, to find radius with lowest log likelihood 
+
+* subset range:
+  * run just in Michigan 
+  * drop non-MI and BBI - no clear trend, lots with - disturbance (N. MI) 
+  * drop N MI and BBI - this seems to improve residuals, and makes sense from a theoretical standpoint
+    + land use change in N. Michigan likely more logging than conversion to agriculture
+
+* eventually, SDM and backcast with backcast environmental data 
+* temporal non-independance 
+
+* Analyses to do:   
+  + get other diversity statistics
+    + singletons per site, unique alleles per site, proportion of unique alleles
+    + what sites have the highest diversity?
+  + date ROH lengths
+    + filter based on quality
+    + create bins that make sense for study (before/during/after fragmentation?)
+  + models
+    + funky residuals... 
+    + revisit disturbance statistic
+    + y-axis as long FROH/recent inbreeding 
+  + make treemix tree 
+
+* writing things: 
+  + make sites table
+  + make FST table
+  + make admixture figures
+  + Habitat loss stats 
+    + make figure of habitat loss trajectories
+    + stats for paper: 
+      + most common land cover lost? most common land cover gained? 
+      + X square km of habitat and Y square km of habitat lost within 10x10 and 2x2 grids
+  + average FST values from N. Michigan to the rest of the range
+
+
+* diversity stats
+  + pi --> use all sites, not just variant sites 
+  + FST --> plink?
+  + isolation by distance
+  + admixutre
+  + contemporary Ne (LDNe)
+  + historical Ne ([GONE?](https://github.com/esrud/GONE), theta) 
+  + [treemix](https://speciationgenomics.github.io/Treemix/)
+* demographic inference
+  + momi3
+  + GONE?
+
+#### October 14th, 2024
+* trying feems installation again 
+* most recent feems install in in conda environment feems_e, made using second set of instructions on github
+* onDemand jobs aren't working
+
+
+#### Next steps & considerations: 
+
+* generate summary stats for extracted variants from log files from the output of `extractVariants.pl`
+```{bash, eval = FALSE}
+# something like: 
+#Extract variant stats
+$ tail -n+6 /mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/annotated/scripts/logs/slurm-30903117.out > /mnt/research/Fitz_Lab/projects/posk/rangewide/variants_rangewide/annotated/allsites/posk_allsites_nomaf_variant_stats.txt
+
+```
+
+#### December 4th, 2024
+* at it again! 
+* goal: check data quality around high-SNP density regions to hopefully improve phlash results 
+* extract mapping quality from regions 
+
+```{bash, eval = FALSE}
+# regions with > 20 SNPs in 100 bp 
+CM078115.1:182044201-182044301,\
+CM078115.1:220542619-220542719,\
+CM078115.1:223256519-223256619,\
+CM078115.1:337886719-337886819,\
+CM078116.1:1667401-1667501,\
+CM078116.1:251152401-251152501,\
+CM078116.1:34571401-34571501,\
+CM078118.1:80423750-80423850,\
+CM078120.1:56287076-56287176,\
+CM078120.1:80738576-80738676,\
+CM078123.1:2651601-265170
+
+# check mapping quality of region, excess heterozygosity, 
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
+
+bcftools query -r CM078115.1:182044201-182044301,CM078115.1:220542619-220542719,CM078115.1:223256519-223256619,CM078115.1:337886719-337886819,CM078116.1:1667401-1667501,CM078116.1:251152401-251152501,CM078116.1:34571401-34571501,CM078118.1:80423750-80423850,CM078120.1:56287076-56287176,CM078120.1:80738576-80738676,CM078123.1:2651601-265170 -f '%CHROM\t%POS\t%INFO/DP\t%INFO/MQ\t%INFO/ExcHet\t%INFO/INDEL\n' $VCF
+
+# initial observations: mapping quality is high: 56-59, ExcHet p-values are generally > 0.3, a few are below 0.05, not depth outliers,
+# indels were filtered out previously, but I could check to see if they were near indels, but MQ doesn't indicate mapping issues
+```
+
+#### December 5th, 2024
+
+Goal: check to see if there were indels near the high density SNP regions 
+```{bash, eval= FALSE}
+
+# all sites VCFs retain INDELs, but the chromosome merged version has them filtered out
+bcftools view -r CM078115.1:182044201-182044301,CM078115.1:220542619-220542719,CM078115.1:223256519-223256619,CM078115.1:337886719-337886819,CM078116.1:1667401-1667501,CM078116.1:251152401-251152501,CM078116.1:34571401-34571501,CM078118.1:80423750-80423850,CM078120.1:56287076-56287176,CM078120.1:80738576-80738676,CM078123.1:2651601-265170 EMR_allsitesHQ_highQual_25.vcf.gz | less -S
+
+# CM078115.1:182044201-182044301 chrom: 26 -- indel at CM078115.1:182044252 (right after high SNP region) in EMR_allsitesHQ_highQual_26.vcf.gz
+# CM078115.1:220542619-220542719 chrom: 31 -- indel at CM078115.1:220542639, CM078115.1:220542928 in EMR_allsitesHQ_highQual_31.vcf.gz
+# CM078115.1:223256519-223256619 chrom: 32
+# CM078115.1:337886719-337886819 chrom: 47
+# CM078116.1:1667401-1667501 chrom: 50 
+# CM078116.1:251152401-251152501 chrom: 83
+# CM078116.1:34571401-34571501 chrom: 53
+# CM078118.1:80423750-80423850 chrom: 124
+# CM078120.1:56287076-56287176 chrom: 151
+# CM078120.1:80738576-80738676 chrom: 155
+# CM078123.1:2651601-2651701 chrom: 170
+
+```
+
+#### December 5th, 2024
+
+Goal: 
+- Count the number of indels in 150 bp before and after high SNP regions
+- Get a sense of our null expectation by selecting SNPs randomly and measure the number of indels surrounding them 
+
+```{bash, eval = FALSE}
+
+# create list of regions to count indels 
+  # chrom | pos start | pos end | chrom_file
+
+# high snp density regions 
+# highSNPDensityRegions.txt
+CM078115.1    182044201   182044301   26
+CM078115.1    220542619   220542719   31
+CM078115.1    223256519   223256619   32
+CM078115.1    337886719   337886819   47
+CM078116.1    1667401   1667501   50
+CM078116.1    251152401   251152501   83
+CM078116.1    34571401    34571501    53
+CM078118.1    80423750    80423850    124
+CM078120.1    56287076    56287176    151
+CM078120.1    80738576    80738676    155
+CM078123.1    2651601   2651701    170
+
+####################################################################################################################################
+# Record indels using HQ SNP VCFs 
+
+IN_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/highSNPDensityRegions.txt"
+OUT_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/indels_highSNPdensity/indels_highSNPDensity_HQSNPs.txt"
+echo -e "chrom\tstart_pos\tend_pos\tchrom_no\tno_indels" > $OUT_FILE
+
+while IFS=$'\t' read -r chrom start_pos end_pos chrom_no; do
+  # identify correct VCF
+  VCF="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_${chrom_no}.vcf.gz" # " allows bash to read the variable in the curly brackets, doesn't work with single brackets
+  start_query=$(($start_pos-150))
+  end_query=$(($end_pos+150))
+  # count number of indels in region surrounding snp/high-snp density region
+  no_indels=$(bcftools query -H -r $chrom:$start_query-$end_query -f '%INFO/INDEL\n' $VCF | awk '$1 != "." {sum += $1} END {print sum}')
+  # output number of indels 
+  echo -e "$chrom\t$start_pos\t$end_pos\t$chrom_no\t$no_indels" >> $OUT_FILE
+done < "$IN_FILE"
+
+####################################################################################################################################
+# Record indels in SNPs before HQ SNP filtering 
+
+IN_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/highSNPDensityRegions.txt"
+OUT_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/indels_highSNPdensity/indels_highSNPDensity.txt"
+echo -e "chrom\tstart_pos\tend_pos\tchrom_no\tno_indels" > $OUT_FILE
+
+while IFS=$'\t' read -r chrom start_pos end_pos chrom_no; do
+  # identify correct VCF
+  VCF="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${chrom_no}.vcf.gz" 
+  start_query=$(($start_pos-150))
+  end_query=$(($end_pos+150))
+  # count number of indels in region surrounding snp/high-snp density region
+  no_indels=$(bcftools query -H -r $chrom:$start_query-$end_query -f '%INFO/INDEL\n' $VCF | awk '$1 != "." {sum += $1} END {print sum}')
+  # output number of indels 
+  echo -e "$chrom\t$start_pos\t$end_pos\t$chrom_no\t$no_indels" >> $OUT_FILE
+done < "$IN_FILE"
+
+####################################################################################################################################
+# record number of indels around randomly selected SNPs 
+
+# identify N random SNPs per genome chunk (chrom_no) (same chunks as high snp density regions?)
+
+# use pos files: /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_SNPs/90_percent_cutoff
+IN_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/highSNPDensityRegions.txt"
+OUT_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/indels_highSNPdensity/random_SNPs.txt"
+echo -e "chrom\tpos\tchrom_no" > $OUT_FILE
+
+while IFS=$'\t' read -r chrom start_pos end_pos chrom_no; do
+  # identify pos file
+  POS="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_SNPs/90_percent_cutoff/EMR_highQual_varfilter_${chrom_no}.pos" # " allows bash to read the variable in the curly brackets, doesn't work with single brackets
+  
+  # identify random SNPs and write to file  
+  shuf -n 1000 $POS | awk -v chrom_no="$chrom_no" -F'\t' '{print $1 "\t" $2 "\t" chrom_no}' >> $OUT_FILE
+done < "$IN_FILE"
+
+####################################################################################################################################
+# look for indels surrounding them (200 bp on each side to recreate 100 bp length of high SNP density regions), HQ snps 
+IN_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/indels_highSNPdensity/random_SNPs.txt"
+OUT_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/indels_highSNPdensity/indels_randomSNPs_HQSNPs.txt"
+echo -e "chrom\tsnp_pos\tchrom_no\tno_indels" > $OUT_FILE
+
+while IFS=$'\t' read -r chrom snp_pos chrom_no; do
+  # identify correct VCF
+  VCF="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_${chrom_no}.vcf.gz" 
+  
+  start_query=$(($snp_pos-200))
+  end_query=$(($snp_pos+200))
+  # count number of indels in region surrounding snp/high-snp density region
+  no_indels=$(bcftools query -H -r $chrom:$start_query-$end_query -f '%INFO/INDEL\n' $VCF | awk '$1 != "." {sum += $1} END {print sum}')
+  # output number of indels 
+  #echo -e "$chrom\t$snp_pos\t$chrom_no\t$no_indels"
+  echo -e "$chrom\t$snp_pos\t$chrom_no\t$no_indels" >> $OUT_FILE
+done < "$IN_FILE"
+
+####################################################################################################################################
+# look for indels surrounding them (200 bp on each side to recreate 100 bp length of high SNP density regions), before HQ SNP filtering 
+IN_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/indels_highSNPdensity/random_SNPs.txt"
+OUT_FILE="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/indels_highSNPdensity/indels_randomSNPs_PreHQ.txt"
+echo -e "chrom\tsnp_pos\tchrom_no\tno_indels" > $OUT_FILE
+
+while IFS=$'\t' read -r chrom snp_pos chrom_no; do
+  # identify correct VCF
+  VCF="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${chrom_no}.vcf.gz" 
+  
+  start_query=$(($snp_pos-200))
+  end_query=$(($snp_pos+200))
+  # count number of indels in region surrounding snp/high-snp density region
+  no_indels=$(bcftools query -H -r $chrom:$start_query-$end_query -f '%INFO/INDEL\n' $VCF | awk '$1 != "." {sum += $1} END {print sum}')
+  # output number of indels 
+  #echo -e "$chrom\t$snp_pos\t$chrom_no\t$no_indels"
+  echo -e "$chrom\t$snp_pos\t$chrom_no\t$no_indels" >> $OUT_FILE
+done < "$IN_FILE"
+
+```
+
+- using `viz_noIndels.R` to compare the number of indels near high SNP density regions with random SNPs
+- it does appear that there are more indels near the high SNP density regions than in random regions
+- this could suggest mapping issues in these regions, even though map quality scores were high
+- could use GATK to perform local realignment near indels, but this would be a *process* 
+- could filter out SNPs that are near indels, or just filter out these high SNP regions
+- I guess the  path forward depends on why phlash is sensitive to these regions
+
+#### December 11th, 2024
+
+- how frequent are indels in the dataset? 
+```{bash, eval = FALSE}
+
+# number of indel sites
+bcftools view -H -i 'INDEL=1' | wc -l 
+# 2437
+
+# number of pass sites
+bcftools view -H | wc -l 
+# 1098050
+
+
+```
+- made `get_indels.sbatch` and submitted job to output macrochromosome indel sites 
+- then, I can count the number of HQ indel sites vs the genome size and the number of non-indel SNPs
+
+#### December 12th, 2024
+```{bash, eval = FALSE}
+
+# to determine number of indel sites across macrochromosmes: 
+bcftools stats EMR_allsitesHQ_indels_chrom.vcf.gz > EMR_allistesHQ_indels_chrom.stats
+
+# could have just done bcftools stats -i to include just indels instead of merging all indels across chromosome chunks
+
+# number of indels: 298266
+# total number of sites: 249481234
+
+
+```
+
+#### December 18th, 2024 
+Goal: using `bcftools filter` to filter out SNPs within 20 bp of an indel   
+- extract list of SNPs within 20 bp of indels, add then to EXCLUDE list in `extract_highQual_sites.sbatch` (i.e. remove them from pos file instead of VCF.). This will probably be simpler (redo 1 step instead of 3) 
+- edit `make_pos_windel.sbatch` to include snps within 20 bp of indels in  `EMR_snps_in_deletions_nomaf_${SLURM_ARRAY_TASK_ID}.pos`
+  - could try multiple -T files or concat pos files and see if that works 
+
+- will need to account for removed sites in .pos files of all sites passing quality control 
+
+```{bash, eval = FALSE}
+
+# test run: 
+VCF='../EMR_allsites_highqual_99.vcf.gz'
+POS='./sites_around_indels_99_test.pos'
+
+bcftools view -i 'INDEL=1' $VCF | bcftools query -f '%CHROM\t%POS\n' | \
+awk '{print $1, $2-20, $2+21}' OFS="\t" > test_indels_with_range.bed
+
+bcftools query -f '%CHROM\t%POS\t%POS\n' $VCF | awk -v OFS="\t" '{print $1, $2-1, $3}' | \
+bedtools intersect -a stdin -b test_indels_with_range.bed -u | uniq -f 1 | awk -v OFS="\t" '{print $1, $2}' > $POS
+
+# troubleshooting: 
+# bcftools view -r CM078117.1:94844375-94844416 $VCF # indel is repeated
+# bcftools query -r CM078117.1:94844375-94844416 -f '%CHROM\t%POS\t%POS\n' $VCF | awk -v OFS="\t" '{print $1, $2-1, $3}' | \
+# bedtools intersect -a stdin -b test_indels_with_range.bed | uniq -f 1 | awk -v OFS="\t" '{print $1, $2}' | less -S 
+
+# double-check that SNPs within indels are included in these ranges (they definitely should be, but I like to sleep at night)
+sites_around_indels_99_test.pos
+EMR_snps_in_deletions_nomaf_99.pos
+
+SNPGAPFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/test_snpsaroundindels/sites_around_indels_99_test.pos
+ORIGFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/windels/EMR_snps_in_deletions_nomaf_99.pos
+
+# convert pos to bed 
+awk -v OFS="\t" '{print $1, $2-1, $2}' $SNPGAPFILE > ./test_snpgap.bed
+awk -v OFS="\t" '{print $1, $2-1, $2}' $ORIGFILE > ./test_origfile.bed
+
+bedtools intersect -a test_origfile.bed -b test_snpgap.bed -v > orig_not_snpgap.bed
+# Only report those entries in A that have no overlap in B. Restricted by -f and -r.
+# 124 sites tht are in ORIGFILE but not SNPGAPFILE
+
+CM078117.1      95118390        95118391
+CM078117.1      95118502        95118503
+CM078117.1      95307399        95307400
+CM078117.1      95352236        95352237
+CM078117.1      95352245        95352246
+CM078117.1      95391892        95391893
+CM078117.1      95391895        95391896
+CM078117.1      95391896        95391897
+
+bcftools view -r CM078117.1:95118390-95118392 $VCF | less -S 
+# in this case, the indel is > 20 bp in length, and the SNP falls outside of 20 bp from where the indel was normalized 
+
+bcftools view -r CM078117.1:95391896-95391897 $VCF | less -S  # same here 
+
+bcftools view -r CM078117.1:95118390-95118392 -i 'INDEL=1' $VCF | less -S 
+# I want to include SNPs on either side of the insertion 
+
+bcftools view -r CM078117.1:95118390-95118392 -i 'INDEL=1' $VCF | bcftools query -f '%CHROM\t%POS\n'| less -S 
+
+# sometimes there are multiple alternate alleles 
+bcftools view -r CM078117.1:95118390-95307400 -i 'INDEL=1' $VCF | bcftools query -f '%REF\t%ALT\n'| \
+awk '{len1=length($1); len2=length($2); if (len1 > len2) print len1; else print len2}' | less -S 
+
+# an alternative method using bcftools filter -SnpGap 20
+
+bcftools filter -r CM078117.1:95118390-95352237 --SnpGap:indel 20 $VCF | less -S 
+# JUST filters out SNPs, so I can proceed with this, but .pos file of "PASS" sites will include sites w/in 20 bp of indels  
+# which I don't think is okay, because then we will be overly confident that those sites are homozygous, when we really don't know
+
+
+bcftools view -r CM078117.1:95118390-95307400 -i 'INDEL=1' $VCF | bcftools query -f '%REF\t%ALT\n'| \
+awk '{len1=length($1); len2=length($2); if (len1 > len2) print len1; else print len2}' | less -S 
+
+# putting it together... 
+
+# if ref is longest --> deletion, use length of ref allele to find end pos
+# if alt is longest --> insertion, use position in ref to find end pos 
+# if there are multiple alts such that one is an insertion (longer than ref) and one is a deletion (shorter than ref):
+  # use length of ref allele to find end pos 
+
+bcftools view -r CM078117.1:95118390-95118503 -v indels $VCF | bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' | \
+awk '{
+    ref_len = length($3);  # Length of the REF allele
+    start = $2 - 20;       # Start position (n - 20)
+    end = $2 + ref_len - 1 + 20;  # End position (n + ref_len - 1 + 20)
+    if (start < 0) start = 0;  # Ensure start is non-negative
+    print $1 "\t" start "\t" end;  # Output in BED format
+}' | less -S 
+
+# e.g. 
+# CHROM, POS, REF, ALT
+CM078117.1      95118367        CTGGCCCAGAGATTGGTGATTAGGA       C
+CM078117.1      95118453        AGAATG  A,AGAATGGAATG
+CM078117.1      95118468        GGAATGGAATGGAATAGAATAGAATA      GGAATA,G
+CM078117.1      95118473        GGAATGGAATAGAATAGAATAGAATAGAATA G,GGAATAGAATAGAATA
+CM078117.1      95118478        GGAATAGAATAGAATAGAATAGAATA      G,GGAATAGAATA
+
+# result: 
+
+CM078117.1      95118347        95118411
+CM078117.1      95118433        95118478
+CM078117.1      95118448        95118513
+CM078117.1      95118453        95118523
+CM078117.1      95118458        95118523
+
+# combine with previous attempt 
+
+
+bcftools view -i 'INDEL=1' $VCF | bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' | \
+awk '{
+    ref_len = length($3);  # Length of the REF allele
+    start = $2 - 20;       # Start position (n - 20)
+    end = $2 + ref_len - 1 + 20;  # End position (n + ref_len - 1 + 20)
+    if (start < 0) start = 0;  # Ensure start is non-negative
+    print $1 "\t" start "\t" end;  # Output in BED format
+}' > test_indels_with_range.bed
+
+# result: 
+CM078117.1      94844375        94844415
+CM078117.1      94844893        94844943
+CM078117.1      94845190        94845251
+
+# next:  
+bcftools query -f '%CHROM\t%POS\t%POS\n' $VCF | \
+bedtools intersect -a stdin -b test_indels_with_range.bed -u | uniq -f 1 | awk -v OFS="\t" '{print $1, $2}' > $POS
+
+# I think this works? 
+
+# double check we are getting all SNPs within indels 
+
+sites_around_indels_99_test.pos
+EMR_snps_in_deletions_nomaf_99.pos
+
+SNPGAPFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/test_snpsaroundindels/sites_around_indels_99_test.pos
+ORIGFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/windels/EMR_snps_in_deletions_nomaf_99.pos
+
+# convert pos to bed 
+awk -v OFS="\t" '{print $1, $2-1, $2}' $SNPGAPFILE > ./test_snpgap.bed
+awk -v OFS="\t" '{print $1, $2-1, $2}' $ORIGFILE > ./test_origfile.bed
+
+bedtools intersect -a test_origfile.bed -b test_snpgap.bed -v > orig_not_snpgap.bed
+# yes! empty file! 
+
+```
+
+```{bash, eval = FALSE}
+
+# final code: 
+
+# Create a bed file of indels with a 20 bp buffer around the coordinates of the sequence in the reference  
+# note that this isn't a true bed file because it isn't 0-based
+bcftools view -v indels $VCF | bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' | \
+awk '{
+    ref_len = length($3);  # Length of the REF allele
+    start = $2 - 20;       # Start position (n - 20)
+    end = $2 + ref_len - 1 + 20;  # End position (n + ref_len - 1 + 20)
+    if (start < 0) start = 0;  # Ensure start is non-negative
+    print $1 "\t" start "\t" end;  # Output in BED format
+}' > test_indels_with_range.bed
+
+
+# Create a position file of genomic positions in the regions described by the bed file
+bcftools query -f '%CHROM\t%POS\t%POS\n' $VCF | \
+bedtools intersect -a stdin -b test_indels_with_range.bed -u | uniq -f 1 | awk -v OFS="\t" '{print $1, $2}' > $POS
+
+##### 
+# Combine both steps into one pipeline
+
+# requires: VCF and POS
+
+#!/bin/bash --login
+
+########## SBATCH Lines for Resource Request ##########
+#SBATCH --time=168:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem-per-cpu=50G            # memory required per allocated CPU (or core)
+#SBATCH --job-name=pos_windel    # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/indel_mask/indel_mask_%A.out" 
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/indel_mask/indel_mask_%A.err"
+#SBATCH --account=bradburd
+##########
+
+# make_indel_mask.sbatch 
+# written by M. Clark 12/20/2024
+# This script takes a VCF file containing indels, and outputs a position file with the genomic positions of sites within 20 bp of an indel, based on the reference. 
+# Indels should be left-aligned (via bcftools norm)
+# If the indel at position n is an insertion, the buffer around it is n +/- 20
+# If the indel at position n is a deletion, the buffer around it is n - 20 and n + length(REF) -1 + 20
+
+# load modules 
+module purge
+module load BCFtools/1.19-GCC-13.2.0
+module list
+
+VCF_INDEL=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_indels_chrom.vcf.gz
+VCF_ALLSITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/EMR_allsitesHQ_highQual_chrom.vcf.gz
+POS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/indels/EMR_indel_buffer_nomaf.pos
+
+bcftools view -v indels $VCF_INDELS | \
+bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' | \
+awk '{
+    ref_len = length($3);  # Length of the REF allele
+    start = $2 - 20;       # Start position (n - 20)
+    end = $2 + ref_len - 1 + 20;  # End position (n + ref_len - 1 + 20)
+    if (start < 0) start = 0;  # Ensure start is non-negative
+    print $1 "\t" start "\t" end;  # Output in BED format
+}' | \
+bedtools intersect -a <(bcftools query -f '%CHROM\t%POS\t%POS\n' $VCF_ALLSITES) -b stdin -u | \
+uniq -f 1 | awk -v OFS="\t" '{print $1, $2}' > $POS
+
+### END SCRIPT
+
+
+```
+- `make_windel_mask.sbatch` running 47734890 12/20/2024, done! 
+
+- edited `extract_highQual_sites.sbatch` to use indel buffers instead of widels
+- running `extract_highQual_sites.sbatch` job id 47747933 12/20/2024
+
+- plan: run `extract_highQual_sites.sbatch` to get pos file of final PASS SNPs*** Then use those to extract VCFs in `flt_high_qual_snps_.sbatch` 
+
+- repeat flt_high_qual_snps_.sbatch for variants and all sites; I'll try filtering variants first to ensure that the number of variants makes sense with the additional filtering (slightly slower, but not significantly), and that there are no longer high SNP regions, or at least not as many. Then I should filtering all sites to get the PASS .pos file for Jonathan 
+   - I am using the allsites .pos file to filter variants. I think this will work? But I should double-check! 
+   - job running 47865447, 12/27/2024
+   
+- then need to potentially drop "suspect" individuals again ?
+
+
+#### December 28th, 2024
+
+- flt_highqual_snps job finished
+- chrom chunk 1 has 126690 with indel buffer. 
+- merge indel buffer variants with `merge_HQ_variants.sbatch`
+  + making vcf_highQual_var_indelBuf_list.txt by modifying vcf_highQual_var_list.txt 
+
+```{bash, eval= FALSE}
+# in vim 
+%s/variants_highQual/variants_highQual_indelMask/
+%s/EMR_highQual_variants_nomaf/EMR_highQual_var_indelMask_nomaf/
+
+```
+
+- running `merge_HQ_variants.sbatch`, job id `47881799`
+
+#### December 30th, 2024 
+
+- merged HQ variants with indel buffer 
+  + 2,590,373 SNPs 
+  + compare with EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz --> 2,067,584 SNPs
+  + compare with EMR_highQual_SNPs_nomaf_chrom.vcf.gz --> 2,352,466 SNPs 
+  + Well, that's weird
+
+```{bash, eval = FALSE}
+cat EMR_highQual_allsites_1.pos | wc -l 
+# 1,014,223 sites 
+
+# 2: 471511 sites 
+
+# 3: 379243 sites 
+
+cat EMR_highQual_allsites_indelBuf_1.pos | wc -l 
+# 98,458 sites 
+
+# 2: 454398
+
+# 3: 364630
+
+# so we do have fewer sites in the indel Buf allsites masks, but some sites that were filtered out originally are no longer being filtered out. 
+```
+
+- the merging script is the same, main difference is how I filtered in flt_highQual_snps.sbatch, so something might be incorrect there. 
+- re-running extract_highQual_sites.sbatch for variants to generate pos files of sites that pass quality filtering
+  + EMR_variants_nomaf_highcov_1.vcf.gz has 131,846 SNPs, including FAIL sites
+  
+  + indelBuf chunk 1: 21,303 lines 
+  + original chunk 1: 10,737 lines
+  + my expectation would be the opposite pattern: more sites are masked with the indelBuffer compared to just removing SNPs in deletions 
+  + number of PASS, biallelic sites in EMR_variants_nomaf_highcov_1.vcf.gz : 106,202
+  + many sites are probably removed because they aren't present in enough individuals 
+
+- test run of `extract_highQual_sites.sbatch` with original files to see if results are the same
+  + original: EMR_highQual_varfilter_1.pos --  10,737 SNPs pass filtering 
+  + TEST_EMR_highQual_varfilter_${SLURM_ARRAY_TASK_ID}.pos -- 21,608 SNPs pass filtering 
+- 90_percent_cutoff.variants .pos files: 2,383,319 total sites ; in extracted VCF: 2,067,584 
+
+- Why is the indel buffer removing many fewer sites than removing SNPs in deletions 
+- the answer is the filtering line! I updated it for allsites vcf file which had 222 individuals on 10/8. But the SNPs vcf file has 228 individuals. The six "suspect" individuals were dropped from teh all sites file, but not the SNPs file. If I drop the individuals from the SNPs vcf files, I do not have to change the lines.  
+
+- I am re-running flt_inds.sbatch for variant sites, which will remove the 6 suspect individuals, and the extract_highQual_sites.sbatch will then be appropriate for the files! 
+  + `extract_highQual_sites.sbatch` for TEST2: 12,371 lines in resulting pos file
+  + TEST1: 21,608 lines
+  + original: 10,737 lines
+  + TEST2 and original are not identical, but the vcf files have a different number of individuals, so I think this makes sense. TEST2 has a similar number of sites to the original, so I think it is acceptable to proceed. 
+
+- re-running `extract_highQual_sites.sbatch`, jobid `47929092`
+
+#### December 31st, 2024 
+- `extract_highQual_sites.sbatch` job has finished 
+- the resulting .pos file have 2,625,369 lines
+  + this is still more than the original run, but not TWICE MORE
+
+- running `flt_high_qual_snps.sbatch` job id `47943272`
+- no SNPs in chrom chunks 190 and 195
+
+- running `merge_HQ_variants.sbatch`, job id `47947696`
+
+- re-running `extract_highQual_sites.sbatch` to generate allsites pos files to make sure those files are up to date before sending to Jonathan 
+
+- only include macro-chromosomes:CM078115.1,CM078116.1,CM078117.1,CM078118.1,CM078119.1,CM078120.1,CM078121.1,CM078122.1,CM078123.1,CM078124.1,CM078125.1,CM078126.1,CM078127.1,CM078128.1,CM078129.1,CM078130.1,CM078131.1
+
+- need to get list of indel sites that make it past filtering into high quality VCFs, and are removed when files are merged, 
+then add these sites to the pos files... somehow
+
+```{bash, eval = FALSE}
+
+bcftools view -H -i 'INDEL=1' EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
+
+```
+
+#### January 6th, 2025
+Issues with filtered VCF:
+- many sites with QUAL less than 20 ---> should I drop these? 
+- invariant sites in the variant VCF ---> how are they slipping through? 
+
+
+#### January 7th, 2025
+- asked Tyler about QUAL<20 sites: 
+```
+I wouldn't worry about the QUAL column given the other filters that you've applied. I never use it when I use likelihoods. It's a little more useful when using hard calls but only as a lower bound, not for characterizing a distribution as it relates to variant confidence because it's easy for it to get very large with many samples - hence why there are normalized versions. The short answer is that filters that I/you use are comprehensive enough that I don't think it helps that much and so wouldn't be that worried about  sites with QUAL < 20, though if you were to to set a minimum of 20 I don't think that would hurt when using hard calls (again, would not use it if using likelihoods). But even when using hard calls, if it was me, I wouldn't be worried about additionally filtering based on it, unless I found that it really improved results. That's default part of how I normally filter.
+```
+- spot-checking QUAL<20 sites shows that they have good depth and GQ scores, and all low AF, so likely that they are SNPs that are only present in Ohio/other drifted small populations. 
+- I will keep them in VCF files for now
+
+- I'm not see invariant sites in the invariant VCF this time around. This is why I shouldn't try to do bioinformatics at 10 pm at a conference. 
+
+
+#### January 12th 2025 
+
+
+### Thinking ahead 
+
+- next, get pos file of all pass sites, use EMR_allsitesHQ_highQual_chrom.vcf.gz and then mask out indel buffers? 
+
+- Is this not just EMR_highQual_allsites_${SLURM_ARRAY_TASK_ID}.pos files? 
+
+```{bash, eval = FALSE}
+# running in tmux shell
+# merge .pos files that are from desired chromosomes 
+
+KEEP_CHROM=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/keep_chrom_list.txt
+INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_allsites_indelBuf/
+OUTPOS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_allsites_indelBuf/EMR_highQual_allsites_indelBuf_chrom.pos
+
+# merge pos files 
+# get list of pos files in genome order (1-200)
+ls *.pos > positionlist.txt
+# in vim: 
+      + `%s/EMR_highQual_allsites_indelBuf_\(\d\+\)\.pos/\1 &/` # add column to the left of file path that is N
+      + `sort n`    # sort based on N
+      + `%s/^\d\+ //`    # delete first column, leaving the sorted file paths
+
+# out of vim: 
+cat positionlist.txt | xargs cat > temp.pos
+
+awk 'NR==FNR {chromosomes[$1]; next} $1 in chromosomes' $KEEP_CHROM temp.pos > $OUTPOS
+
+# temp.pos has 244349441 lines
+# $OUTPOS has 242131621 lines
+
+
+```
+
+
+
+#### Downstream methods plans:
+
+##### 1: PCA
+**Goals**\
+
+* visualization of population structure
+* determine genetic clusters to use for demographic inference
+
+**Methods**\
+
+* [VCF2PCACluster](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-024-05770-1)
+* Just do in python?
+* plink? 
+
+##### 2: MOMI3
+
+* is this even released? 
+* contact Jonathan about install early
+* specify demographic models using Demes (Gower et al. 2022)
+
+##### 3: ROH
+
+##### 4: Stats
+
+* number of shared rare alleles between populations 
+* FST
+* theta
+* genome-wide pi x
+* SFS (python code?)
+
+
+      
