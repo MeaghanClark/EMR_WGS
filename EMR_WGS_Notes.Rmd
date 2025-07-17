@@ -2681,8 +2681,97 @@ I wouldn't worry about the QUAL column given the other filters that you've appli
 - I'm not see invariant sites in the invariant VCF this time around. This is why I shouldn't try to do bioinformatics at 10 pm at a conference. 
 
 
-#### January 12th 2025 
+#### February 10th 2025 
+- installing Espalier
 
+```{bash, eval = FALSE}
+conda create --name espalier
+
+conda activate espalier
+
+pip install Espier
+
+# RAxML-NG is required and is installed on the hpcc
+module load RAxML-NG/1.0.1
+```
+
+#### February 11th, 2025 
+- using jupyter notebooks to test out Espalier. As soon as I remember how to do this on the hpcc
+- go to https://ondemand.hpcc.msu.edu/
+
+```{bash, eval = FALSE}
+# go to https://ondemand.hpcc.msu.edu/
+# make sure to use conda path from ~/.bashrc, evidently I do not have a normal conda install
+
+```
+
+#### May 26th, 2025
+
+###### TRANFERING DATA OFF OF MSU GOOGLE DRIVE
+- What is there? 
+  - initial EMR RAD raw data
+  - demultiplexed EMR RAD data 
+  - EMR WGS called SNPs from March 2022 (mutliple versions)
+  - back up of EMR_RAPTURE hpcc folder, including demultiplexed data (again)
+  - EMR RAPTURE raw data, multiplexed 
+  - EMR WGS, original 10 genomes, alignment quality txt files 
+    - not used, can be deleted
+  - EMR WGS, original 10 genomes, alignment files
+    - redone with new WGS data and new reference, can be deleted
+  - EMR WGS raw data for original 10 genomes
+  
+###### BACKUPING UP DATA FROM HPCC TO CARSON
+- EMR WGS sequencing run from June 2024 --> some files there, some did not transfer
+    - make list of missing samples, transfer, and check md5sum again 
+    - lots of files missing, so I am just going to re-start the transfer 
+    - started: 5/26/25 at 7:26 PM PT in tmux space "transfer"
+- transfer EMR WGS August sequencing run
+  - started 5/27/2025 at 9:45 AM PT in tmux space "aug_transfer"
+  
+```{}
+303G	/mnt/ufs18/gpfs-home/clarkm89/EMR_WGS
+227G	/mnt/ufs18/gpfs-home/clarkm89/petrels
+141G	/mnt/ufs18/gpfs-home/clarkm89/EMR_RAPTURE
+22G	/mnt/ufs18/gpfs-home/clarkm89/anaconda3
+6.4G	/mnt/ufs18/gpfs-home/clarkm89/DC_slim
+5.6G	/mnt/ufs18/gpfs-home/clarkm89/gryllus
+4.4G	/mnt/ufs18/gpfs-home/clarkm89/.conda
+934M	/mnt/ufs18/gpfs-home/clarkm89/.singularity
+431M	/mnt/ufs18/gpfs-home/clarkm89/.cache
+346M	/mnt/ufs18/gpfs-home/clarkm89/.local
+287M	/mnt/ufs18/gpfs-home/clarkm89/perl5
+51M	/mnt/ufs18/gpfs-home/clarkm89/.cpan
+30M	/mnt/ufs18/gpfs-home/clarkm89/.cpanm
+28M	/mnt/ufs18/gpfs-home/clarkm89/R
+14M	/mnt/ufs18/gpfs-home/clarkm89/.lmod.d
+12M	/mnt/ufs18/gpfs-home/clarkm89/R_Lib
+8.7M	/mnt/ufs18/gpfs-home/clarkm89/.config
+2.9M	/mnt/ufs18/gpfs-home/clarkm89/.java
+415K	/mnt/ufs18/gpfs-home/clarkm89/gzrt
+403K	/mnt/ufs18/gpfs-home/clarkm89/ondemand
+203K	/mnt/ufs18/gpfs-home/clarkm89/rclone_logs
+197K	/mnt/ufs18/gpfs-home/clarkm89/.ipython
+67K	/mnt/ufs18/gpfs-home/clarkm89/.jupyter
+53K	/mnt/ufs18/gpfs-home/clarkm89/EMR_scripts
+24K	/mnt/ufs18/gpfs-home/clarkm89/.dgenies
+17K	/mnt/ufs18/gpfs-home/clarkm89/.ssh
+16K	/mnt/ufs18/gpfs-home/clarkm89/.pki
+9.1K	/mnt/ufs18/gpfs-home/clarkm89/.xemacs
+9.1K	/mnt/ufs18/gpfs-home/clarkm89/Documents
+9.0K	/mnt/ufs18/gpfs-home/clarkm89/.vim
+8.2K	/mnt/ufs18/gpfs-home/clarkm89/.ncbi
+8.1K	/mnt/ufs18/gpfs-home/clarkm89/.oracle_jre_usage
+8.0K	/mnt/ufs18/gpfs-home/clarkm89/EMR_pedigree
+8.0K	/mnt/ufs18/gpfs-home/clarkm89/.emacs.d
+
+
+TOTAL USAGE IN /mnt/ufs18/gpfs-home/clarkm89 IS 711G
+
+```
+
+###### HOME DIRECTORY MIGRATION
+- 
+  
 
 ### Thinking ahead 
 
@@ -2717,7 +2806,29 @@ awk 'NR==FNR {chromosomes[$1]; next} $1 in chromosomes' $KEEP_CHROM temp.pos > $
 
 ```
 
+- transfering data --> use rsync node on hpcc to carson 
 
+```{bash, eval = FALSE}
+
+# made list of files on hpcc
+# made list of files on carson
+# found difference between them
+comm -23 "$FILE1" "$FILE2" > missing_files.txt
+
+# copied missing files to carson
+while read -r file; do
+    echo "Copying: $file"
+    scp /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawData/fastqs_10686-MC/${file} clarkm89@carson.kbs.msu.edu:/data/grpdata/fitz_lab/projects/massasauga/EMR_WGS/June_seq/
+done < $SCRATCH/missing_files.txt
+
+# and repeated this process b/c original transfer timed out
+while read -r file; do
+    echo "Copying: $file"
+    scp /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/rawData/fastqs_10686-MC/${file} clarkm89@carson.kbs.msu.edu:/data/grpdata/fitz_lab/projects/massasauga/EMR_WGS/June_seq/fastqs_10686-MC/
+done < $SCRATCH/updated_missing_files.txt
+
+
+```
 
 #### Downstream methods plans:
 
