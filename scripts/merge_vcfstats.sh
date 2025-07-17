@@ -1,0 +1,222 @@
+#!/bin/bash
+
+########## SBATCH Lines for Resource Request ##########
+#SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --cpus-per-task=1      # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem-per-cpu=20G            # memory required per allocated CPU (or core)
+#SBATCH --job-name=merge_vcfstats    # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_vcfstats/merge_%A.out" 
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/merge_vcfstats/merge_%A.err"
+#SBATCH --account=bradburd
+##########
+
+
+cat /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_1.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_2.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_3.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_4.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_5.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_6.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_7.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_8.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_9.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_10.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_11.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_12.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_13.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_14.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_15.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_16.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_17.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_18.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_19.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_20.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_21.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_22.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_23.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_24.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_25.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_26.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_27.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_28.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_29.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_30.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_31.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_32.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_33.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_34.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_35.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_36.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_37.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_38.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_39.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_40.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_41.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_42.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_43.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_44.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_45.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_46.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_47.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_48.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_49.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_50.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_51.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_52.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_53.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_54.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_55.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_56.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_57.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_58.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_59.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_60.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_61.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_62.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_63.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_64.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_65.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_66.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_67.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_68.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_69.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_70.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_71.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_72.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_73.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_74.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_75.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_76.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_77.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_78.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_79.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_80.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_81.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_82.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_83.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_84.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_85.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_86.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_87.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_88.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_89.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_90.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_91.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_92.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_93.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_94.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_95.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_96.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_97.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_98.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_99.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_100.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_101.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_102.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_103.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_104.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_105.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_106.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_107.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_108.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_109.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_110.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_111.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_112.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_113.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_114.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_115.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_116.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_117.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_118.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_119.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_120.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_121.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_122.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_123.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_124.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_125.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_126.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_127.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_128.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_129.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_130.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_131.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_132.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_133.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_134.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_135.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_136.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_137.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_138.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_139.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_140.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_141.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_142.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_143.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_144.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_145.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_146.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_147.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_148.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_149.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_150.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_151.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_152.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_153.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_154.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_155.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_156.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_157.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_158.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_159.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_160.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_161.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_162.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_163.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_164.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_165.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_166.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_167.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_168.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_169.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_170.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_171.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_172.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_173.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_174.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_175.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_176.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_177.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_178.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_179.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_180.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_181.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_182.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_183.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_184.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_185.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_186.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_187.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_188.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_189.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_190.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_191.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_192.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_193.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_194.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_195.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_196.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_197.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_198.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_199.vcfstats \
+/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_200.vcfstats > /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_TEMP.vcfstats
+
+echo merged vcfstats files 
+
+(head -n1 /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_TEMP.vcfstats && grep -v "depth" /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_TEMP.vcfstats) > /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_ordered.vcfstats
+
+
+awk '{print $3}' /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_ordered.vcfstats > /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/vcfstats/EMR_WGS_norm_ordered_depth.vcfstats
+
+echo I have removed intermediate headers and also output a separate depth file 

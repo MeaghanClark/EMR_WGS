@@ -1,0 +1,2 @@
+/mnt/scratch/clarkm89/EMR_WGS_2020_RawData/rawData/ELF_335L2_1.fastq.gz	/mnt/scratch/clarkm89/EMR_WGS_2020_RawData/rawData/ELF_335L2_2.fastq.gz
+/mnt/scratch/clarkm89/EMR_WGS_2020_RawData/rawData/ELF_335L3_1.fastq.gz	/mnt/scratch/clarkm89/EMR_WGS_2020_RawData/rawData/ELF_335L3_2.fastq.gz

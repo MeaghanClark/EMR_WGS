@@ -11,8 +11,7 @@
 ##########
 
 # merge_HQ_variants.sbatch
-# M. Clark 09/23/2024, updated 10/8/2024
-# updated to make sure indels are removed 
+# M. Clark 09/23/2024, updated 12/31/2024
 
 # merge vcf high quality variants files and filter to retain desired autosomal chromosomes
 
@@ -22,9 +21,13 @@
 KEEP_CHROM='CM078115.1,CM078116.1,CM078117.1,CM078118.1,CM078119.1,CM078120.1,CM078121.1,CM078122.1,CM078123.1,CM078124.1,CM078125.1,CM078126.1,CM078127.1,CM078128.1,CM078129.1,CM078130.1,CM078131.1' #/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/ref_chromosome_list.txt   # list of chromosomes to retain in output VCF file
 #OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_variants_nomaf_chrom.vcf.gz
 
+# for variants with indel buffer: 
+VCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/vcf_highQual_var_indelBuf_list.txt' # list of vcf file form flt_high_qual_snps.sbatch, in order of chromosome chunk
+OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
+
 # for allsites:
-VCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/vcf_highQual_allsites_list.txt' # list of vcf file form flt_high_qual_snps.sbatch, in order of chromosome chunk
-OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
+#VCF_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/vcf_highQual_allsites_list.txt' # list of vcf file form flt_high_qual_snps.sbatch, in order of chromosome chunk
+#OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
 
 while IFS= read -r line; do 
 	tabix -p vcf $line
