@@ -12,7 +12,7 @@
 ##########
 
 # flt_inds.sbatch
-# M. Clark 09/22/2024, updated 09/22/2024
+# M. Clark 09/22/2024, updated 12/30/2024
 
 # filter to retain high coverage individuals for EMR WGS project
 # retain individuals with 12X average genome-wide depth or greater
@@ -25,14 +25,21 @@ module list
 bcftools --version 
 
 # define variables 
+# VCF
 # for variants:
-#VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/all_inds/EMR_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz # all sites, all inds VCF
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/all_inds/EMR_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz # all sites, all inds VCF
 # for all sites:
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotated_vcf/EMR_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz # all sites, all inds VCF
+#VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/annotated_vcf/EMR_annotated_${SLURM_ARRAY_TASK_ID}.vcf.gz # all sites, all inds VCF
+
+# SAMPLES
+# for all: 
 SAMPLES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/high_qual_inds.txt
+
+# OUTPUT VCF
 #for variants:
-#OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz
-OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${SLURM_ARRAY_TASK_ID}.vcf.gz
+OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz
+# for all sites
+#OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${SLURM_ARRAY_TASK_ID}.vcf.gz
 
 # SAMPLES file is a list of individuals to retain in the output VCF, one name per line
 
