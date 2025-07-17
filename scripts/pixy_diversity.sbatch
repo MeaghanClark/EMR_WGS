@@ -1,8 +1,7 @@
 #!/bin/bash --login
 
 ########## SBATCH Lines for Resource Request ##########
-#SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --array=1-222
+#SBATCH --time=12:00:00 
 #SBATCH --cpus-per-task=5       # number of CPUs (or cores) per task (same as -c)
 #SBATCH --mem=50G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=pixy_div     # you can give your job a name for easier identification (same as -J)
@@ -20,13 +19,16 @@ source activate pixy
 # define variables
 VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
 POP_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/highQual_pixy_populations.txt
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/pixy/
+OUTFILE="HQ_allsites"
 
 pixy --stats pi dxy \
 --vcf $VCF \
 --populations $POP_FILE \
 --window_size 10000 \
 --n_cores 5 \
-
+--output_folder $OUTDIR \
+--output_prefix $OUTFILE
 
 #print some environment variables to stdout for records
 echo ----------------------------------------------------------------------------------------

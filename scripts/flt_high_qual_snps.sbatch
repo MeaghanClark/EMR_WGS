@@ -25,15 +25,19 @@ bcftools --version
 
 # define variables 
 # for variants:
-#VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz # all variants VCF, high coverage individuals
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_noMAF/high_cov_inds/EMR_variants_nomaf_highcov_${SLURM_ARRAY_TASK_ID}.vcf.gz # all variants VCF, high coverage individuals
+# for no snps in indels (original approach): 
 #INCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_SNPs/90_percent_cutoff/EMR_highQual_varfilter_${SLURM_ARRAY_TASK_ID}.pos # sites that pass genotype call quality filtering from extract_highQuality_sites.sbatch
-#OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_variants_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz 
+
+# for indel mask approach: 
+INCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_SNPs_indelBuf/EMR_highQual_varfilter_indelBuf_${SLURM_ARRAY_TASK_ID}.pos
+OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_var_indelMask_nomaf_${SLURM_ARRAY_TASK_ID}.vcf.gz 
 
 # for all sites
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${SLURM_ARRAY_TASK_ID}.vcf.gz
-INCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_allsites/EMR_highQual_allsites_${SLURM_ARRAY_TASK_ID}.pos # sites that pass genotype call quality filtering from extract_highQuality_sites.sbatch
-OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_${SLURM_ARRAY_TASK_ID}.vcf.gz
-
+#VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/high_qual_inds/EMR_allsites_highqual_${SLURM_ARRAY_TASK_ID}.vcf.gz
+#INCLUDE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_allsites/EMR_highQual_allsites_${SLURM_ARRAY_TASK_ID}.pos # sites that pass genotype call quality filtering from extract_highQuality_sites.sbatch
+#OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_${SLURM_ARRAY_TASK_ID}.vcf.gz
+#OUTVCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_indelMask_Sites/EMR_allsitesHQ_highQual_indelMask_${SLURM_ARRAY_TASK_ID}.vcf.gz
 
 # filter VCF and output and new VCF
 bcftools view -T $INCLUDE -Oz -o $OUTVCF $VCF 

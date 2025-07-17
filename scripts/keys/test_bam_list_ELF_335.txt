@@ -1,0 +1,1 @@
+/mnt/scratch/clarkm89/EMR_WGS/alignments/final/ELF_335.rehead.trim.merge.bam
