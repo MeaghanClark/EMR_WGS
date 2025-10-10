@@ -11,7 +11,7 @@
 #SBATCH --account=bradburd
 ##########
 # run_bcftools_roh.sbatch
-# M. Clark, 09/30/2024
+# M. Clark, 09/30/2024, updated 09/19/2024
 
 #load programs we want to use
 module purge
@@ -32,11 +32,9 @@ echo individual is $IND
 echo using allele freq file $AF_FILE
 
 # define other variables 
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
 OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/raw_roh_output/${IND}_highQual_SNPs_nomaf_chrom_drop_roh.txt
 CPUS=4
-
-if [ ! -d $OUTPUT ]; then mkdir $OUTPUT; fi
 
 bcftools roh --samples $IND --threads $CPUS --rec-rate 3.935e-8 --AF-file $AF_FILE --output-type sr --skip-indels --viterbi-training 1e-10 --output $OUTPUT $VCF 
 
