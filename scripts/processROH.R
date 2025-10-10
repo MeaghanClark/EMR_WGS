@@ -16,22 +16,21 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # If no arguments or fewer than 2 are provided, print usage message and stop
 if (length(args) < 2) {
-  stop("Usage: Rscript processROH.R <bcftools_roh_file.txt> <output_file.regions> <output_file.froh> [min_quality] [length_threshold]")
+  stop("Usage: Rscript processROH.R <bcftools_roh_file.txt> <output_file.regions> [min_quality] [length_threshold]")
 }
 
 # Output and input filenames are the first two arguments
 infile <- args[1]
-regions_outfile <- args[2]
-froh_outfile <- args[3]
+outfile <- args[2]
 
 # set up for testing
 infile <- "~/Desktop/EMR_WGS/roh_testing/BBI_46_highQual_SNPs_nomaf_chrom_drop_roh.txt"
 
 # Update optional arguments from defaults if provided
 # If a fourth argument is provided, override default min quality
-minq <- ifelse(length(args) >= 4, as.numeric(args[4]), minq)
+minq <- ifelse(length(args) >= 3, as.numeric(args[3]), minq)
 # If a fifth argument is provided, override default minimum length threshold
-threshold <- ifelse(length(args) >= 5, as.numeric(args[5]), threshold)
+threshold <- ifelse(length(args) >= 4, as.numeric(args[4]), threshold)
 
 # Read input file, or die if fails
 lines <- readLines(infile)
