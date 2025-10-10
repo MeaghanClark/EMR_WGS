@@ -2770,10 +2770,6 @@ TOTAL USAGE IN /mnt/ufs18/gpfs-home/clarkm89 IS 711G
 ```
 
 ###### HOME DIRECTORY MIGRATION
-- 
-  
-
-### Thinking ahead 
 
 - next, get pos file of all pass sites, use EMR_allsitesHQ_highQual_chrom.vcf.gz and then mask out indel buffers? 
 
@@ -2830,7 +2826,240 @@ done < $SCRATCH/updated_missing_files.txt
 
 ```
 
+#### Align data to mitochondrial genomes 
+- Goal: assess mitochondrial haplotypes 
+- Hypothesis: More mt diversity further south --> an artifact of post-glacial expansion further north
+
+Steps: 
+- assess mitochondrial scaffold from Canadian reference genome 
+  - Mito HiFi (check for nuclear contamination in the assembly)
+  - MIA to call new consensus https://github.com/mpieva/mapping-iterative-assembler
+- align raw reads to JUST mt scaffold from reference, and specify that it is haploid 
+- filter alignments
+- call variants on mtgenome
+- filter variants 
+
+- on hold for now
+
+#### Re-running ROH 
+- Goal: re-run with updated filtered VCF file
+- When processing output, use minimum ROH size 
+- Do more complex analyses with ROH length
+
+- take a look at `run_bcftools_roh.sbatch`
+
+Todo: 
+  - update VCF file
+  - verify recombination rate
+  - remake allele frequency files
+    - one per major PCA group: BBI, NMI, SMI, OH
+    - `calc_AF.sbatch` 
+```{bash, eval = FALSE}
+# UPDATED VERSION
+#!/bin/bash --login
+
+########## SBATCH Lines for Resource Request ##########
+#SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --array=0-3
+#SBATCH --cpus-per-task=1         # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem=50G            # memory required per allocated CPU (or core)
+#SBATCH --job-name=AF     # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/roh/AF_%A-%a.out"
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/roh/AF_%A-%a.err"
+#SBATCH --account=bradburd
+##########
+# calc_AF.sbatch 
+# M. Clark, 09/19/2025
+
+#load programs we want to use
+module purge
+module load powertools
+module load BCFtools/1.19-GCC-13.2.0
+module list
+
+bcftools --version
+
+# define sample set 
+FILES=("BBI_inds" "NMI_inds" "SMI_inds" "OH_inds")
+
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
+
+SAMP=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/roh_groups/${FILES[${SLURM_ARRAY_TASK_ID}]}.txt
+echo using $SAMP
+SAMPLES=$(cat $SAMP)
+OUTFILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/allele_freqs/EMR_highQual_variants_nomaf_indelBuf_chrom_${FILES[${SLURM_ARRAY_TASK_ID}]}_altAF.tab.gz
+
+# calculate allele frequencies
+bcftools view -s $SAMPLES $VCF | bcftools +fill-tags -Ou -- -t all | bcftools query -f'%CHROM\t%POS\t%REF,%ALT\t%INFO/AF\n'| bgzip -c > $OUTFILE
+
+#print some environment variables to stdout for records
+echo ----------------------------------------------------------------------------------------
+echo PRINTING SUBSET OF ENVIRONMENT VARIABLES:
+(set -o posix ; set | grep -v ^_ | grep -v ^EB | grep -v ^BASH | grep -v PATH | grep -v LS_COLORS)
+
+echo ----------------------------------------------------------------------------------------
+
+```
+  - running calc_AF.sbatch as job id 61939554 on 9/19/25
+  
+  - per bcftools manual, need to generate index files for the AF .tab.gz, as in: 
+
+```{bas, eval = FALSE}
+tabix -s1 -b2 -e2 EMR_highQual_SNPs_nomaf_chrom_drop_BBI_inds_altAF.tab.gz
+tabix -s1 -b2 -e2 EMR_highQual_SNPs_nomaf_chrom_drop_NMI_inds_altAF.tab.gz
+tabix -s1 -b2 -e2 EMR_highQual_SNPs_nomaf_chrom_drop_SMI_inds_altAF.tab.gz
+tabix -s1 -b2 -e2 EMR_highQual_SNPs_nomaf_chrom_drop_OH_inds_altAF.tab.gz
+```
+
+
+```{bash, eval = FALSE}
+#!/bin/bash --login
+
+########## SBATCH Lines for Resource Request ##########
+#SBATCH --time=24:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --array=1-222
+#SBATCH --cpus-per-task=4        # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem=50G            # memory required per allocated CPU (or core)
+#SBATCH --job-name=bcf_roh     # you can give your job a name for easier identification (same as -J)
+#SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/roh/bcf_roh_%A-%a.out"
+#SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/roh/bcf_roh_%A-%a.err"
+#SBATCH --account=bradburd
+##########
+# run_bcftools_roh.sbatch
+# M. Clark, 09/30/2024
+
+#load programs we want to use
+module purge
+module load powertools
+module load BCFtools/1.19-GCC-13.2.0
+module list
+
+bcftools --version
+
+# define variable 
+ARRAY_KEY=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/roh_key.txt
+
+# use key file to get individual id and allele freq file 
+line=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$ARRAY_KEY")
+
+IFS=$' ' read -r IND AF_FILE <<< "$line"
+echo individual is $IND
+echo using allele freq file $AF_FILE
+
+# define other variables 
+# VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
+
+OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/${IND}_highQual_SNPs_nomaf_indelBuf_chrom_drop_roh.txt
+CPUS=4
+
+
+bcftools roh --samples $IND --threads $CPUS --rec-rate 3.935e-8 --AF-file $AF_FILE --output-type sr --skip-indels --viterbi-training 1e-10 --output $OUTPUT $VCF
+
+
+#print some environment variables to stdout for records
+echo ----------------------------------------------------------------------------------------
+echo PRINTING SUBSET OF ENVIRONMENT VARIABLES:
+(set -o posix ; set | grep -v ^_ | grep -v ^EB | grep -v ^BASH | grep -v PATH | grep -v LS_COLORS)
+
+echo ----------------------------------------------------------------------------------------
+
+```
+
+- submitted run_bcftools_roh.sbatch as jobid `61944122`
+
+###### September 29th, 2025
+- sent Tyler some questions that I'm unclear about after poking around github roh code 
+I'm updating my ROH results after doing some additional filtering around indels (almost a year ago...ugh). I've been doing some code snooping on github to refresh my memory on how to do all of this, and a few questions came up that I was wondering if I could get your expert opinions on if/when you have a chance––
+I'm seeing other people using the viterbi training using all samples to estimate HMM parameters, and then taking those parameters and re-running bcftools roh. Is there a reason to do this over using the results from the viterbi training run? From my recollection without the viterbi training, bcftools ROH will output start/end positions of ROH for you, rather than a list of autozygous sites, which simplifies post-processing (but its unclear how quality scores are taken into account?).
+Is there any benefit to running multiple samples at once?
+
+- looking at this github repo: https://github.com/avril-m-harder/roh_inference_testing
+
+##### October 1st, 2025 
+- Okay back at it! 
+Tyler's response to above query: 
+```
+My recollection of the bcftools roh implementation is that it always uses the viterbi algorithm to identify the most likely sequence of autozygous or non-autozygous states at every site/SNP and uses the forward-backward algorithm to figure out the probability of the states. If you don't use viterbi training it just uses your input transition probabilities to identify the state sequence with the viterbi algorithm followed by the forward-backward algorithm to get the probability of the state for each site, and you can output the state of each site, and also some information about a region. When you use Viterbi training it is estimating the transition probabilities for each given individual separately, regardless of whether you supply multiple individuals at once. Technically, with the viterbi training it calculates the autozygygous-to-nonautozygous and nonautozygous-to-autozygous transition probabilities using all chromosomes in the input with one iteration of the Baum Welch algorithm per chromosome. This is repeated until the changes in all transition probabilities are below the --viterbi-training argument value. Then, bcftools takes the estimated parameters (or the ones you supplied if you didn't perform training) and runs the viterbi again to get all of the states of the input SNPs, identifies the path for these states, and uses the forward backward algorithm to get the probabilities of the states. This info is is outputted for all SNPs (lines starting with "ROH").
+
+So to succinctly answer your question, since the HMM parameters are always calculated for a single individual at a time (which makes sense because the transition probs will be different among individuals based on how inbred they are) I don't think parameters are estimated from multiple individuals, unless you take all of the estimates for each individual and combine them (e.g. average), and use that as input. The only situation in which I would think this could at all be helpful is if the data quality was very different among samples and you needed to "smooth" this out by averaging. Still, probably not a great idea since it would lessen the accuracy for samples with good data. You can supply individuals together or separately and it will always process them one at a time. One reason why you would supply multiple individuals at once is if you are having bcftools roh calculate allele frequencies for that group on the fly from the VCF (versus supplying allele frequencies separately with --AF-file), since it needs allele frequencies to calculate the prob of being autozygous or not.
+```
+
+- so my question now is: the Harder et al. code has RG output lines instead of ROH output lines in seems. How did they do that? 
+- let's run some tests
+```{bash, eval = FALSE}
+
+tmux new -s roh_testing
+
+module purge
+module load powertools
+module load BCFtools/1.19-GCC-13.2.0
+module list
+
+
+IND=BBI_46
+AF_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/allele_freqs/EMR_highQual_SNPs_nomaf_chrom_drop_BBI_inds_altAF.tab.gz
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
+OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/testing/${IND}_highQual_SNPs_nomaf_chrom_drop_roh.txt
+
+# removing --output-type sr
+bcftools roh --samples $IND --rec-rate 3.935e-8 --AF-file $AF_FILE --skip-indels --viterbi-training 1e-10 --output $OUTPUT $VCF
+
+# accidently overwrote original output, will need to re-do for this individual, BBI_46
+
+# Harder et al code with viterbi training: 
+# 	## Genotype likelihoods
+# 	bcftools roh \
+# 	--threads 20 \
+# 	--viterbi-training 1e-10 \
+# 	-o tasdev_PLonly_${c}_viterbi.txt \
+# 	--AF-file final_tasdev_all_chroms_15samps_${c}.tab.gz \
+# 	../rohparam_03_gatk/sorted_tasdev_all_chroms_15samps_${c}.recode.vcf.gz
+
+OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/testing/${IND}_harder_params.txt
+
+# removed --rec-rate, --skip-indels, --output-type, it would be weird of any of that made a difference
+bcftools roh --samples $IND --AF-file $AF_FILE --viterbi-training 1e-10 --output $OUTPUT $VCF
+  # more viterbi training lines, no RG lines
+  
+# different version of bcftools? 
+  # hpcc has BCFtools/1.19-GCC-13.2.0
+  # harder et al using bcftools/1.17
+  # can load 1.17 using module load BCFtools/1.17-GCC-12.2.0
+
+module purge 
+module load powertools
+module load BCFtools/1.17-GCC-12.2.0
+
+OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/testing/${IND}_bcftools_1_17.txt
+bcftools roh --samples $IND --AF-file $AF_FILE --viterbi-training 1e-10 --output $OUTPUT $VCF
+
+# nope, same
+
+# no viterbi training
+OUTPUT=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/roh/testing/${IND}_no_viterbi.txt
+bcftools roh --samples $IND --AF-file $AF_FILE --output $OUTPUT $VCF
+
+```
+
+- well, this was a nice exercise, but I do actually want the VT/ROH output so I can correctly identify the denominator of ROH
+
+##### October 10th, 2025 
+- re-wrote Tyler's perl script in R. 
+- want to verify that it does the same thing as the perl version? 
+  - running on testing versions of identify_roh.sbatch, job id `62679017`
+  - yes! Froh is the same using the R script and perl script! 
+- then modify script to output both total ROH and implement a minimum size threshold 
+  - need to modify loop such that it is also keeping track of high quality sites within a ROH, output that with the ROH info, then can implement different size cut offs using the length info in the table? Number of total sites and total HQ sites should remain the same. 
+- modify running script on hpcc
+- re-run for all individuals 
+```{bash, eval = TRUE}
+
+
+``` 
 #### Downstream methods plans:
+
+- depth to determine sex: https://github.com/popgenDK/SATC
 
 ##### 1: PCA
 **Goals**\
