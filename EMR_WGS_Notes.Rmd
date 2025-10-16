@@ -3050,13 +3050,35 @@ bcftools roh --samples $IND --AF-file $AF_FILE --output $OUTPUT $VCF
   - running on testing versions of identify_roh.sbatch, job id `62679017`
   - yes! Froh is the same using the R script and perl script! 
 - then modify script to output both total ROH and implement a minimum size threshold 
-  - need to modify loop such that it is also keeping track of high quality sites within a ROH, output that with the ROH info, then can implement different size cut offs using the length info in the table? Number of total sites and total HQ sites should remain the same. 
-- modify running script on hpcc
-- re-run for all individuals 
-```{bash, eval = TRUE}
+  - need to modify loop such that it is also keeping track of high quality sites within a ROH, output that with the ROH info, then can implement different size cut offs using the length info in the table? Number of total sites and total HQ sites should remain the same. Done! 
+- modify running script on hpcc. Done! 
+- re-run for all individuals, running, job id `62689643` Done! 
+
+##### Oct 15th, 2025 
 
 
-``` 
+
+###### Next steps: 
+- remind myself how I extract Froh values from text output files
+
+```{bash, eval = FALSE}
+# Loop through all files in the directory
+for file in ./*.froh; do
+    # get individual name 
+    IND=$(echo $file | awk -F"_" '{print $1"_"$2}' | sed 's/\.\///g')
+    # extract Froh
+    # FROH=$(sed -n "2p" "$file" | awk '{print $2}')
+    FROH=$(sed -n "2p" "$file")
+    # Save results to report.txt if both populations and Fst are found
+    echo -e "$IND\t$FROH" >> ./Froh_report.txt
+done
+
+```
+- redo ROH length analyses 
+- 
+
+
+
 #### Downstream methods plans:
 
 - depth to determine sex: https://github.com/popgenDK/SATC
