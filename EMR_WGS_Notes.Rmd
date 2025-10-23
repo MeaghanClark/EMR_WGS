@@ -3055,11 +3055,7 @@ bcftools roh --samples $IND --AF-file $AF_FILE --output $OUTPUT $VCF
 - re-run for all individuals, running, job id `62689643` Done! 
 
 ##### Oct 15th, 2025 
-
-
-
-###### Next steps: 
-- remind myself how I extract Froh values from text output files
+- extract Froh values from text output files
 
 ```{bash, eval = FALSE}
 # Loop through all files in the directory
@@ -3074,10 +3070,237 @@ for file in ./*.froh; do
 done
 
 ```
-- redo ROH length analyses 
-- 
+
+##### October 16th, 2026 
+- re-doing analyses with updated VCF (indel mask filtering) 
+
+```{eval = FALSE}
+
+# basic popgen stats--------------------------------------------------------------------------------------------------------------
+sbatch ./scripts/basic_vcf_stats.sbatch # jobid 62820740
+  # VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz'
+
+# FST--------------------------------------------------------------------------------------------------------------
+sbatch ./scripts/wrapper-calc_pairwiseFst.sh
+  #   # VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz'
+  # wow, that's a nightmare, there's got to be a way to make this an array job! 
+
+# extract FST from output files
+echo -e "site1\tsite2\tfst" > ../../Fst/Fst_report.txt
+
+# Loop through all files in the directory
+for file in ./*.err; do
+
+    sites=$(grep -- "--keep" "$file" | sed 's/.*pops\/\([A-Z]*\)\.txt/\1/')
+
+    # Extract the Fst estimate
+    fst=$(grep 'Weir and Cockerham weighted Fst estimate' "$file" | awk '{print $NF}')
+
+    # Save results to report.txt if both populations and Fst are found
+    site1=$(echo "$sites" | sed -n '1p')
+    site2=$(echo "$sites" | sed -n '2p')
+    echo -e "$site1\t$site2\t$fst" >> ../../Fst/Fst_report.txt
+done
+
+# PCA--------------------------------------------------------------------------------------------------------------
+# do in tmux shell with plink
+
+# convert EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz to plink with maf filter and ld.prune file 
+# running in tmux shell
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools 
+module list 
+
+# Currently Loaded Modules:
+#   1) PLINK/1.9b_6.21-x86_64   2) reportseff/2.7.6   3) powertools/1.3.0
+
+INDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask
+VCF_NAME=EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/maf
+OUTNAME=EMR_highQual_indelBuf_drop_maf
+
+plink --vcf ${INDIR}/${VCF_NAME} --biallelic-only 'strict' --set-missing-var-ids @:# --vcf-half-call 'missing' --double-id --recode --allow-extra-chr --maf 0.05 --indep-pairwise 50 5 0.5 --out ${OUTDIR}/${OUTNAME}
+
+# doesn't actually DO ld pruning, just gives you a list of sites to exclude/keep. Rare variants are actually removed 
+
+# make eigenvec and eigenval files for PCA
+
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/maf/EMR_highQual_indelBuf_drop_maf
+LD_SITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/maf/EMR_highQual_indelBuf_drop_maf.prune.in
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_indelBuf_drop_maf_ldPruned
+
+plink --file $FILES --allow-extra-chr --extract $LD_SITES --pca --out $OUTDIR
+
+# run plink PCA on subset of sites, excluding N. Michigan and Bois Blanc Island
+
+# run in tmux shell
+# makes eigenvec and eigenval files for PCA
+
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools 
+module list 
+
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf/EMR_highQual_chrom_drop_maf
+LD_SITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/maf/EMR_highQual_chrom_drop_maf.prune.in
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/PCA/EMR_highQual_indelBuf_SMIOH
+INDS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/SMIOH_inds.txt 
+
+plink --file $FILES --allow-extra-chr --extract $LD_SITES --pca --keep $INDS --out $OUTDIR
+
+# Run admixture ------------------------------------------------------------------------------------------------------
+
+# use plink to prepare input files 
+module purge
+module load PLINK/1.9b_6.21-x86_64
+module load powertools
+module list
+
+# make ld pruned .bed file 
+FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/maf/EMR_highQual_indelBuf_drop_maf # these still have sites in LD
+LD_SITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/maf/EMR_highQual_indelBuf_drop_maf.prune.in
+LD_FLTDATA=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/LD_maf/EMR_ldPruned
+
+plink --file $FILES --extract $LD_SITES --make-bed --allow-extra-chr --out $LD_FLTDATA
+
+# replace chromosomes in .bim file with numeric code 
+INBIM=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/LD_maf/EMR_ldPruned.bim
+OUTBIM=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/LD_maf/EMR_ldPruned_int.bim
+
+awk '{
+    if (!($1 in chr_map)) {
+        chr_map[$1] = ++count
+    }
+    $1 = chr_map[$1]
+    print
+}' OFS="\t" $INBIM > $OUTBIM
+
+# replace old .bim with chr with new .bim file with integers, but make a backup of the original file
+mv $INBIM ./EMR_ldPruned_chr.bim
+mv $OUTBIM $INBIM
+
+# run slurm submission script from dir you want output to be written to
+sbatch ../scripts/run_admixture.sbatch # job id 62821634
+  # BED='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/LD_maf/EMR_ldPruned.bed'
+
+```
+
+##### October 17th, 2025 
+- downloading files and and updating figures
+
+##### October 21st, 2025
+- re-run pixy to get pi estimates
+```{bash, eval = FALSE}
+# activate conda environment
+conda activate pixy
+
+# create populations file 
+# "This is a headerless, tab-separated file where the first column contains sample names (exactly as represented in the VCF), and # the second column contains population names (these can be anything, but should be consistent!)."
+
+# can't run on dev node
+salloc -N 1 --time=72:00:00 --mem 500Gb --account bradburd
+# generate allsites VCF with indelBuffer
+VCF_ALLSITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
+# Positions of all sites that passed qual filtering
+INDEL_PASS_SITES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/masks/highQual_allsites_indelBuf/EMR_highQual_allsites_indelBuf_chrom.pos
+VCF_ALLPASS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/EMR_allsites_indelBuf_chrom.vcf.gz
+
+bcftools view -R $INDEL_PASS_SITES $VCF_ALLSITES > $VCF_ALLPASS
+
+# get list of individuals from allsites VCF: 
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
+POP_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/highQual_pixy_populations.txt
+POP_TEMP=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/highQual_pixy_populations_temp.txt
+bcftools view $VCF | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n" > $POP_FILE
+
+# add column with population names 
+awk -F"_" '{print $0 "\t" $1}' $POP_FILE > $POP_TEMP
+
+mv $POP_TEMP $POP_FILE
 
 
+# run pixy 
+
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
+POP_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/highQual_pixy_populations.txt
+
+# maybe should not be on dev node... we'll see! yes, definitely dev node!  
+
+# pixy_diversity.sbatch jobid 44711678
+
+pixy --stats pi dxy \
+--vcf $VCF \
+--populations $POP_FILE \
+--window_size 10000 \
+--n_cores 1 \
+
+
+# want per site estimate of pi, 
+# sum(count_diffs) / sum(count_comparisons)
+
+```
+- now need to update figures! 
+
+
+- FEEMS in environment feems_e
+```{bash, eval = FALSE} 
+# running into lots of package compatability issues with feems and it's dependancies 
+# reinstalling in a new environment using the .yml file! 
+
+### feems.yml
+name: feems_e
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  - python=3.12
+  - numpy
+  - scipy
+  - matplotlib-base
+  - pandas
+  - scikit-learn
+  - cartopy
+  - geos
+  - proj
+  - shapely
+  - fiona
+  - pyproj
+  - msprime
+  - networkx
+  - tqdm
+  - openpyxl
+  - xlrd
+  - scikit-sparse
+  - suitesparse
+  - pytest
+  - flake8
+  - jupyter
+  - pip
+  - pip:
+    - tskit
+    - demes
+    - pandas-plink
+    - pandera
+    - xarray
+    - dask
+    - "--editable=git+https://github.com/NovembreLab/feems#egg=feems"
+### 
+
+module purge
+module load Miniforge3
+conda env create -f feems.yml
+conda activate feems_e
+conda install jupyter
+
+# Yes! that works! Can work now with interactive jupyter lab
+
+# make coordinate input file: 
+awk '{print $1}' /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/LD_maf/EMR_ldPruned.fam > /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/plink_inds.txt
+
+# create coordinate input in make_coords_for_feems.R
+```
 
 #### Downstream methods plans:
 
