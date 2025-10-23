@@ -24,7 +24,7 @@ bcftools --version
 # define sample set 
 FILES=("BBI_inds" "NMI_inds" "SMI_inds" "OH_inds")
 
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
 SAMP=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/roh_groups/${FILES[${SLURM_ARRAY_TASK_ID}]}.txt
 echo using $SAMP
 SAMPLES=$(cat $SAMP)

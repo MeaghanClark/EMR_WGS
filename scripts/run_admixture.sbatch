@@ -12,7 +12,7 @@
 ##########
 
 # run_admixture.sbatch
-# M. Clark 09/25/2024, updated 09/25/2024
+# M. Clark 09/25/2024, updated 10/16/2025
 
 # running admixture on range of K values defined using array job
 
@@ -22,7 +22,7 @@ module load powertools
 module list
 
 # define variables 
-BED='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/LD_maf/EMR_ldPruned.bed'
+BED='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/LD_maf/EMR_ldPruned.bed'
 
 # Usage: admixture <input file> <K>
 admixture --cv -j${CPUS} $BED $SLURM_ARRAY_TASK_ID

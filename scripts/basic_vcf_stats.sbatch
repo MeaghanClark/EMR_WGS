@@ -11,14 +11,18 @@
 ##########
 
 # basic_vcf_stats.sbatch
+<<<<<<< HEAD
 # M. Clark 09/23/2024, updated 09/27/2024
+=======
+# M. Clark 09/23/2024, updated 10/16/2025
+>>>>>>> 16beca62b61f5949b7e3fdbd1f66e1592f0b3934
 
 # use vcftools to calculate some basic statistics from vcfs
 
 # define variables 
-VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz'
-OUTDIR='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual/'
-OUT_PREFIX='EMR_highQual_SNPs_nomaf_chrom_drop'
+VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz'
+OUTDIR='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/stats_highQual_indelMask/'
+OUT_PREFIX='EMR_highQual_SNPs_nomaf_indelMask_drop'
 
 # allele frequencies --freq 
 vcftools --gzvcf $VCF --freq --out ${OUTDIR}/${OUT_PREFIX}_allele_freqs

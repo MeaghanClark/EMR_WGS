@@ -1,12 +1,12 @@
 #!/bin/bash --login
 
 # calc_pairwiseFst.sbatch
-# M. Clark 09/23/2024, updated 09/23/2024
+# M. Clark 09/23/2024, updated 10/16/2024
 
 # use vcftools to calculate Fst
 
 # define variables 
-VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz'
+VCF='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz'
 
 # FST
 populations=($(ls ${POPDIR}/*.txt)) # get list of population files 

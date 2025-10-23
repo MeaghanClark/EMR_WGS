@@ -3300,6 +3300,8 @@ conda install jupyter
 awk '{print $1}' /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/plink/LD_maf/EMR_ldPruned.fam > /mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/plink_inds.txt
 
 # create coordinate input in make_coords_for_feems.R
+
+
 ```
 
 #### Downstream methods plans:
