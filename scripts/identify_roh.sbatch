@@ -2,9 +2,9 @@
 
 ########## SBATCH Lines for Resource Request ##########
 #SBATCH --time=12:00:00             # limit of wall clock time - how long the job will run (same as -t)
-#SBATCH --array=1 # CHANGE BACK TO 222 WHEN RUNNING FULL VERSION
+#SBATCH --array=1-222 
 #SBATCH --cpus-per-task=1       # number of CPUs (or cores) per task (same as -c)
-#SBATCH --mem=24G            # memory required per allocated CPU (or core)
+#SBATCH --mem=12G            # memory required per allocated CPU (or core)
 #SBATCH --job-name=id_roh     # you can give your job a name for easier identification (same as -J)
 #SBATCH --output="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/roh/id_roh_%A-%a.out"
 #SBATCH --error="/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/logs/roh/id_roh_%A-%a.err"
@@ -15,11 +15,12 @@
 # M. Clark, 09/30/2024
 # based on code by T. Linderoth, rohRegions.pl also written by T. Linderoth. Thanks Tyler! 
 # converted from perl to R 10/10/2025
+# usage: Rscript processROH.R <bcftools_roh_file.txt> <output_file.regions> [min_quality] [length_threshold]
 
 FILE_LIST='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/keys/roh_list.txt' # list of bcftools roh output files, one per line
 FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$FILE_LIST") # pull out a line from the list of files based on the array number 
-REGION_OUT=$(echo "$FILE" | sed 's/\.txt$/\.regions/') # replace .txt with .regions, defines region output 
-FROH_OUT=$(echo "$FILE" | sed 's/\.txt$/\.froh/') # replace .txt with .froh, defines Froh output 
+REGION_OUT=$(echo "$FILE" | sed 's|/raw_roh_output/|/|; s/\.txt$/.regions/')
+FROH_OUT=$(echo "$FILE" | sed 's|/raw_roh_output/|/|; s/\.txt$/\.froh/') # replace .txt with .froh, defines Froh output 
 EXEC='/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/processROH.R' # R script
 
 # troubleshooting code

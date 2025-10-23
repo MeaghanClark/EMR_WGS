@@ -1,9 +1,7 @@
 #!/bin/bash
 		
 # wrapper-calc_pairwiseFst.sh		
-# This script starts an array job to run bamstats on merged bam file from merge_bams.sbatch
-# The array job will start one job per chromosome grouping
-# Last updated 09/26/2024 by MI Clark, script format inspired by R Toczydlowski and T Linderoth
+# Last updated 10/16/2025 by MI Clark, script format inspired by R Toczydlowski and T Linderoth
 
 #  run from project directory (where you want output directory to be created)
 
@@ -22,7 +20,7 @@ total_mem=12G
 
 # define executable, reference and needed scripts etc. 
 executable=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/calc_pairwiseFst.sbatch
-prefix='EMR_highQual_SNPs_nomaf_chrom_drop'
+prefix='EMR_highQual_SNPs_nomaf_indelMask_drop'
 
 #check if logfiles directory has been created in submit dir yet; if not, make one
 if [ ! -d $logfilesdir ]; then mkdir $logfilesdir; fi

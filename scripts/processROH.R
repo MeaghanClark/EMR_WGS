@@ -23,13 +23,10 @@ if (length(args) < 2) {
 infile <- args[1]
 outfile <- args[2]
 
-# set up for testing
-infile <- "~/Desktop/EMR_WGS/roh_testing/BBI_46_highQual_SNPs_nomaf_chrom_drop_roh.txt"
-
 # Update optional arguments from defaults if provided
-# If a fourth argument is provided, override default min quality
+# If a third argument is provided, override default min quality
 minq <- ifelse(length(args) >= 3, as.numeric(args[3]), minq)
-# If a fifth argument is provided, override default minimum length threshold
+# If a fourth argument is provided, override default minimum length threshold
 threshold <- ifelse(length(args) >= 4, as.numeric(args[4]), threshold)
 
 # Read input file, or die if fails
@@ -149,10 +146,9 @@ pauto <- if (nsites > 0) sprintf("%.8f", nauto / nsites) else "NaN"
 pauto_hiq <- if (nsites_hiq > 0) sprintf("%.8f", nauto_hiq / nsites_hiq) else "NaN"
 
 # Calculate FROH with size limitation 
-threshold = 100e3 # in base pairs
 
-pauto_threshold <- if(nsites > 0) sprintf("%.8f", sum(roh_df[roh_df$length > lim,"sites"]) / nsites) else "NaN"
-pauto_threshold_hq <- if(nsites_hiq > 0) sprintf("%.8f", sum(roh_df[roh_df$length > lim,"hq_sites"]) / nsites_hiq) else "NaN"
+pauto_threshold <- if(nsites > 0) sprintf("%.8f", sum(roh_df[roh_df$length > threshold,"sites"]) / nsites) else "NaN"
+pauto_threshold_hq <- if(nsites_hiq > 0) sprintf("%.8f", sum(roh_df[roh_df$length > threshold,"hq_sites"]) / nsites_hiq) else "NaN"
 
 # Print summary statistics to STDOUT
 cat("FROH\tFROH_HIQUAL\tTHRESHOLD\tFROH_THRESHOLD\tFROH_THRESHOLD_HIQUAL\tN_SITES\tN_AUTOZYGOUS\tN_SITES_HIQUAL\tN_AUTOZYGOUS_HIQUAL\n")
