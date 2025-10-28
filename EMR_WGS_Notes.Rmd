@@ -3208,6 +3208,8 @@ VCF_ALLPASS=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites
 
 bcftools view -R $INDEL_PASS_SITES $VCF_ALLSITES > $VCF_ALLPASS
 
+# this is taking WAY too long... Can I pipe into pixy? ********* HERE ************
+
 # get list of individuals from allsites VCF: 
 VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/allsites/highQualInds_Sites/EMR_allsitesHQ_highQual_chrom.vcf.gz
 POP_FILE=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/scripts/highQual_pixy_populations.txt
@@ -3241,7 +3243,6 @@ pixy --stats pi dxy \
 
 ```
 - now need to update figures! 
-
 
 - FEEMS in environment feems_e
 ```{bash, eval = FALSE} 
