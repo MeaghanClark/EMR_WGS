@@ -1,5 +1,7 @@
+#!/bin/bash --login
+
 # Script to generate .ped and .map input files for GONE analysis
-# M. Clark 10/2/2024
+# M. Clark 10/2/2024, updated 12/2/2025
 
 # Site name (present in individual name) should be provided through the command link
 
@@ -9,11 +11,20 @@ module load BCFtools/1.19-GCC-13.2.0
 module load powertools
 module list
 
-SITE=$1 # use standard input to get SITE, either BBI, ELF, GOU, GRA, HAL, MAN, PCC, or SEV
-VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/EMR_highQual_SNPs_nomaf_chrom_drop.vcf.gz
-FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/all_SNPs/EMR_highQual_chrom_drop
-OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/GONE/input
+# ARRAY_KEY=("BBI" "ELF" "GOU" "GRA" "HAL" "MAN" "PCC" "SEV")
+ARRAY_KEY=("ATL" "HUR" "BAS" "GRF" "DEL" "OTI" "THR" "ONS") # small sample size sites
+
+echo $ARRAY_KEY
+echo $SLURM_ARRAY_TASK_ID
+echo ${ARRAY_KEY[$((SLURM_ARRAY_TASK_ID-1))]}
+
+SITE=${ARRAY_KEY[$((SLURM_ARRAY_TASK_ID-1))]}
+VCF=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual_indelMask/EMR_highQual_variants_nomaf_indelBuf_chrom.vcf.gz
+# FILES=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/variants/variants_highQual/plink/all_SNPs/EMR_highQual_chrom_drop
+OUTDIR=/mnt/research/Fitz_Lab/projects/massasauga/EMR_WGS/GONE2/${SITE}
 OUTNAME=${SITE}
+
+if [ ! -d $OUTDIR ]; then mkdir $OUTDIR; fi
 
 # generate list of samples 
 INDS=$(bcftools view $VCF | grep -m1 "^#CHROM" | cut -f 10- | tr "\t" "\n"  | grep $SITE | tr "\n" "," | sed 's/,$//')
